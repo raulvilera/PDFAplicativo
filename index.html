@@ -3,12 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
     <title>PDF·Leitor Pro</title>
     <link rel="manifest" href="./manifest.json">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
 
         :root {
             --primary: #00d4ff;
@@ -17,7 +24,6 @@
             --accent: #0077b6;
             --neon-blue: #00f3ff;
             --neon-purple: #bc13fe;
-            --neon-green: #0aff0a;
             --bg-dark: #000000;
             --bg-card: #0a0a0f;
             --bg-elevated: #1a1a2e;
@@ -31,79 +37,48 @@
             --gradient-header: linear-gradient(135deg, #000000 0%, #0a0a1f 25%, #1a1a3e 50%, #0a0a2f 75%, #000000 100%);
             --gradient-button: linear-gradient(135deg, #0077b6 0%, #00d4ff 100%);
             --gradient-card: linear-gradient(145deg, #0a0a0f 0%, #1a1a2e 100%);
-            --gradient-glow: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(188, 19, 254, 0.3));
         }
 
-        html, body { overflow-x: hidden; width: 100%; height: 100%; }
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+        }
 
         body {
             font-family: 'DM Sans', sans-serif;
             background: var(--bg-dark);
-            color: var(--text-primary);
-            min-height: 100vh;
+            color: var(--text-primary);            min-height: 100vh;
+            min-height: -webkit-fill-available;
             position: relative;
+            overflow-x: hidden;
+            width: 100%;
         }
 
-        /* Futuristic Background Effects */
         body::before {
             content: '';
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: 
                 radial-gradient(ellipse at 20% 30%, rgba(0, 212, 255, 0.08) 0%, transparent 40%),
-                radial-gradient(ellipse at 80% 70%, rgba(188, 19, 254, 0.06) 0%, transparent 40%),
-                radial-gradient(ellipse at 50% 50%, rgba(0, 243, 255, 0.03) 0%, transparent 60%);
+                radial-gradient(ellipse at 80% 70%, rgba(188, 19, 254, 0.06) 0%, transparent 40%);
             pointer-events: none;
             z-index: 0;
         }
 
-        body::after {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0, 243, 255, 0.01) 2px,
-                rgba(0, 243, 255, 0.01) 4px
-            );
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        /* Modern Futuristic Header */
+        /* Header Responsivo */
         .app-header {
             background: var(--gradient-header);
-            padding: 1rem 1.25rem;
+            padding: 0.875rem 1rem;
             position: relative;
             overflow: hidden;
-            box-shadow: 
-                0 4px 30px rgba(0, 0, 0, 0.8),
-                0 0 60px rgba(0, 212, 255, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8), 0 0 60px rgba(0, 212, 255, 0.15);
             border-bottom: 1px solid rgba(0, 212, 255, 0.3);
             margin: 0.5rem;
-            border-radius: 20px;
-        }
-
-        .app-header::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 200%; height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(0, 243, 255, 0.1),
-                transparent
-            );
-            animation: scan 8s linear infinite;
-        }
-
-        @keyframes scan {
-            0% { left: -100%; }
-            100% { left: 100%; }
+            border-radius: 16px;
+            width: calc(100% - 1rem);
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .header-content { 
@@ -116,120 +91,83 @@
         .logo-3d { 
             display: flex; 
             align-items: center; 
-            gap: 1rem; 
+            gap: 0.75rem;
+            flex-wrap: wrap;
         }
 
         .logo-icon {
-            width: 50px; 
-            height: 50px;
+            width: 45px;             height: 45px;
             background: linear-gradient(135deg, #000000 0%, #0a0a1f 50%, #1a1a3e 100%);
-            border-radius: 16px;
+            border-radius: 12px;
             display: flex; 
             align-items: center; 
             justify-content: center;
-            font-size: 1.8rem;
-            box-shadow: 
-                0 0 30px rgba(0, 212, 255, 0.4),
-                0 0 60px rgba(0, 212, 255, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            font-size: 1.5rem;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
             border: 2px solid rgba(0, 212, 255, 0.4);
             flex-shrink: 0;
-            position: relative;
-            overflow: hidden;
-            animation: pulse-glow 3s ease-in-out infinite;
-        }
-
-        .logo-icon::before {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: linear-gradient(
-                45deg,
-                transparent,
-                rgba(0, 243, 255, 0.2),
-                transparent
-            );
-            transform: rotate(45deg);
-            animation: shine 3s ease-in-out infinite;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 30px rgba(0, 212, 255, 0.4), 0 0 60px rgba(0, 212, 255, 0.2); }
-            50% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.3); }
-        }
-
-        @keyframes shine {
-            0%, 100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
 
         .logo-text {
-            font-size: 1.5rem; 
+            font-size: clamp(1rem, 4vw, 1.5rem);
             font-weight: 700;
             background: linear-gradient(135deg, #ffffff 0%, #00f3ff 50%, #bc13fe 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
-            letter-spacing: 0.5px;
+            white-space: nowrap;
         }
 
         .app-subtitle {
-            font-size: 0.75rem;
+            font-size: clamp(0.65rem, 2.5vw, 0.75rem);
             color: var(--text-secondary);
-            margin-top: 0.25rem;
+            margin-top: 0.125rem;
             opacity: 0.8;
             letter-spacing: 1px;
         }
 
+        /* Container Principal */
         .main-container { 
             max-width: 1400px; 
             margin: 0 auto; 
-            padding: 0.75rem; 
+            padding: 0.5rem;
             position: relative; 
-            z-index: 1; 
+            z-index: 1;
+            width: 100%;
         }
 
+        /* Toolbar Responsiva */
         .toolbar {
             background: var(--gradient-card);
-            border-radius: 16px; 
+            border-radius: 12px; 
             padding: 0.75rem;
             margin-bottom: 0.75rem;
-            box-shadow: 
-                0 4px 30px rgba(0,0,0,0.6),
-                0 0 20px rgba(0, 212, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.6), 0 0 20px rgba(0, 212, 255, 0.1);
             border: 1px solid rgba(0, 212, 255, 0.2);
             display: flex; 
-            flex-wrap: wrap; 
-            gap: 0.5rem;
+            flex-wrap: wrap;             gap: 0.5rem;
             align-items: center; 
             justify-content: space-between;
             position: relative;
             overflow: hidden;
-        }
-
-        .toolbar::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.4), transparent);
+            width: 100%;
         }
 
         .toolbar-group { 
             display: flex; 
             gap: 0.5rem; 
             align-items: center; 
-            flex-wrap: wrap; 
+            flex-wrap: wrap;
+            flex-shrink: 1;
         }
 
         .btn {
-            padding: 0.6rem 1rem; 
+            padding: clamp(0.5rem, 2vw, 0.75rem) clamp(0.75rem, 3vw, 1rem);
             border: none; 
-            border-radius: 12px;
+            border-radius: 10px;
             font-family: 'DM Sans', sans-serif; 
             font-weight: 600; 
-            font-size: 0.85rem;
+            font-size: clamp(0.75rem, 2.5vw, 0.875rem);
             cursor: pointer; 
             transition: all 0.3s ease;
             display: inline-flex; 
@@ -237,24 +175,8 @@
             gap: 0.4rem;
             touch-action: manipulation; 
             min-height: 44px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 0; height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .btn:active::before {
-            width: 300px;
-            height: 300px;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .btn-primary { 
@@ -262,11 +184,6 @@
             color: #000; 
             font-weight: 700;
             box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-        }
-        
-        .btn-primary:hover {
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
-            transform: translateY(-2px);
         }
         
         .btn-primary:active { 
@@ -277,17 +194,9 @@
             background: var(--bg-elevated); 
             color: var(--text-primary); 
             border: 1px solid var(--border);
-            transition: all 0.3s ease;
-        }
-        
-        .btn-secondary:hover { 
-            background: var(--bg-surface); 
-            border-color: var(--primary); 
-            color: var(--primary);
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
-        }
-        
+        }        
         .btn-secondary:active { 
+            background: var(--bg-surface); 
             transform: scale(0.95); 
         }
         
@@ -300,38 +209,41 @@
 
         .btn-icon { 
             padding: 0.6rem; 
-            border-radius: 12px; 
-            width: 44px; 
-            height: 44px; 
-            justify-content: center; 
+            border-radius: 10px; 
+            width: clamp(40px, 10vw, 44px);
+            height: clamp(40px, 10vw, 44px);
+            justify-content: center;
+            flex-shrink: 0;
         }
 
+        /* Search Container */
         .search-container { 
             position: relative; 
             flex: 1; 
-            min-width: 200px; 
-            max-width: 400px; 
+            min-width: 200px;
+            max-width: 100%;
+            flex-shrink: 1;
         }
 
         .search-input {
             width: 100%; 
             padding: 0.6rem 0.8rem 0.6rem 2.5rem;
             border: 2px solid var(--border); 
-            border-radius: 12px;
+            border-radius: 10px;
             background: var(--bg-elevated); 
             color: var(--text-primary);
             font-family: 'DM Sans', sans-serif; 
-            font-size: 0.85rem;
+            font-size: 0.875rem;
             transition: all 0.3s ease;
+            min-height: 44px;
         }
         
         .search-input:focus { 
             outline: none; 
             border-color: var(--primary); 
-            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1), 0 0 20px rgba(0, 212, 255, 0.1); 
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
         }
-        
-        .search-input::placeholder { 
+                .search-input::placeholder { 
             color: var(--text-secondary); 
         }
         
@@ -341,19 +253,20 @@
             top: 50%; 
             transform: translateY(-50%); 
             color: var(--primary); 
+            font-size: 1rem;
         }
 
+        /* Viewer Container */
         .viewer-container {
             background: var(--gradient-card);
-            border-radius: 16px; 
+            border-radius: 12px; 
             padding: 0.75rem;
-            box-shadow: 
-                0 4px 30px rgba(0,0,0,0.6),
-                0 0 20px rgba(0, 212, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.6), 0 0 20px rgba(0, 212, 255, 0.1);
             border: 1px solid rgba(0, 212, 255, 0.2);
-            min-height: 600px; 
+            min-height: 60vh;
             position: relative; 
             overflow: hidden;
+            width: 100%;
         }
 
         .empty-state { 
@@ -363,13 +276,13 @@
         }
         
         .empty-icon { 
-            font-size: 4rem; 
+            font-size: clamp(3rem, 10vw, 4rem); 
             margin-bottom: 1rem; 
             opacity: 0.5; 
         }
         
         .empty-title { 
-            font-size: 1.3rem; 
+            font-size: clamp(1.1rem, 4vw, 1.3rem); 
             margin-bottom: 0.75rem; 
             color: var(--text-primary); 
         }
@@ -379,8 +292,7 @@
         }
 
         .pdf-wrapper { 
-            display: none; 
-            flex-direction: column; 
+            display: none;             flex-direction: column; 
             align-items: center; 
             gap: 1rem; 
             width: 100%; 
@@ -390,6 +302,7 @@
             display: flex; 
         }
 
+        /* Page Navigation Overlay */
         .page-nav-overlay {
             position: sticky; 
             top: 0.5rem; 
@@ -399,61 +312,55 @@
             justify-content: center; 
             gap: 0.75rem;
             padding: 0.5rem 1rem;
-            background: rgba(10, 10, 15, 0.9);
+            background: rgba(10, 10, 15, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 50px;
             border: 1px solid rgba(0, 212, 255, 0.3);
-            box-shadow: 
-                0 4px 30px rgba(0,0,0,0.6),
-                0 0 30px rgba(0, 212, 255, 0.2);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.6), 0 0 30px rgba(0, 212, 255, 0.2);
             width: fit-content; 
             margin: 0 auto;
+            max-width: 90%;
         }
 
         .page-nav-overlay .btn-icon {
             background: rgba(0, 212, 255, 0.1); 
             border: 1px solid rgba(0, 212, 255, 0.3);
             color: var(--primary); 
-            width: 40px; 
-            height: 40px;
-            font-size: 1.3rem; 
+            width: clamp(36px, 10vw, 40px);
+            height: clamp(36px, 10vw, 40px);
+            font-size: 1.2rem; 
             display: flex; 
             align-items: center; 
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-        }
-        
-        .page-nav-overlay .btn-icon:hover {
-            background: rgba(0, 212, 255, 0.2);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            flex-shrink: 0;
         }
         
         .page-nav-overlay .btn-icon:active { 
             background: rgba(0, 212, 255, 0.3); 
             transform: scale(0.95); 
         }
-        
-        .page-nav-overlay .page-info { 
+                .page-nav-overlay .page-info { 
             font-family: 'Space Mono', monospace; 
             color: var(--text-primary); 
-            font-size: 0.9rem; 
+            font-size: clamp(0.8rem, 3vw, 0.9rem);
             font-weight: 600; 
-            min-width: 90px; 
+            min-width: 80px; 
             text-align: center; 
+            white-space: nowrap;
         }
         
         .page-nav-overlay .page-info span { 
             color: var(--primary); 
         }
 
+        /* Page Container */
         .page-container {
             position: relative;
             background: white;
             border-radius: 8px;
-            box-shadow: 
-                0 10px 40px rgba(0,0,0,0.6), 
-                0 0 30px rgba(0, 212, 255, 0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 30px rgba(0, 212, 255, 0.1);
             overflow: hidden;
             width: 100%;
             max-width: 100%;
@@ -483,16 +390,9 @@
             position: absolute;
             color: transparent !important;
             white-space: pre;
-            cursor: text;
-            transform-origin: 0% 0%;
+            cursor: text;            transform-origin: 0% 0%;
             user-select: text;
             -webkit-user-select: text;
-        }
-
-        .text-layer span::selection,
-        .text-layer span::-moz-selection {
-            background: rgba(0, 212, 255, 0.4) !important;
-            color: transparent !important;
         }
 
         #annotation-canvas {
@@ -509,14 +409,6 @@
         #annotation-canvas.active { 
             display: block; 
         }
-        
-        #annotation-canvas.eraser-cursor { 
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="white" stroke-width="2"/></svg>') 12 12, auto; 
-        }
-        
-        #annotation-canvas.highlight-cursor { 
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="8" width="20" height="8" fill="rgba(255,255,0,0.5)" stroke="white" stroke-width="1"/></svg>') 12 12, auto; 
-        }
 
         .page-container.editing { 
             user-select: none; 
@@ -530,32 +422,24 @@
             pointer-events: none; 
         }
 
+        /* Annotation Toolbar Responsiva */
         .annotation-toolbar {
             background: var(--bg-elevated);
-            border-radius: 16px; 
+            border-radius: 12px; 
             padding: 0.75rem;
             display: none; 
             gap: 0.5rem;
             align-items: center; 
             flex-wrap: wrap;
             border: 1px solid rgba(0, 212, 255, 0.3);
-            box-shadow: 
-                0 4px 30px rgba(0,0,0,0.6),
-                0 0 20px rgba(0, 212, 255, 0.15);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.6), 0 0 20px rgba(0, 212, 255, 0.15);
             margin-bottom: 0.75rem;
             position: relative;
             overflow: hidden;
+            width: 100%;
         }
 
-        .annotation-toolbar::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.4), transparent);
-        }
-
-        .annotation-toolbar.active { 
-            display: flex; 
+        .annotation-toolbar.active {             display: flex; 
         }
 
         .tool-group {
@@ -565,6 +449,7 @@
             padding-right: 0.5rem;
             border-right: 1px solid var(--border);
             flex-wrap: wrap;
+            flex-shrink: 1;
         }
         
         .tool-group:last-child { 
@@ -572,28 +457,21 @@
         }
 
         .tool-btn {
-            padding: 0.5rem 0.75rem;
+            padding: clamp(0.4rem, 2vw, 0.6rem) clamp(0.5rem, 2.5vw, 0.75rem);
             border: 2px solid var(--border);
-            border-radius: 12px;
+            border-radius: 10px;
             background: var(--bg-card);
             color: var(--text-primary);
             cursor: pointer; 
             transition: all 0.3s ease;
-            font-size: 0.75rem;
+            font-size: clamp(0.7rem, 2.5vw, 0.8rem);
             display: flex; 
             align-items: center; 
             gap: 0.3rem;
             min-height: 40px;
             touch-action: manipulation;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .tool-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
-            transform: translateY(-2px);
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         
         .tool-btn:active { 
@@ -609,17 +487,18 @@
         }
 
         .color-picker { 
-            width: 40px; 
-            height: 40px; 
-            border: 2px solid var(--border); 
-            border-radius: 12px; 
+            width: clamp(36px, 8vw, 40px);
+            height: clamp(36px, 8vw, 40px);            border: 2px solid var(--border); 
+            border-radius: 10px; 
             cursor: pointer; 
-            background: transparent; 
+            background: transparent;
+            flex-shrink: 0;
         }
         
         .size-slider { 
-            width: 80px; 
-            accent-color: var(--primary); 
+            width: clamp(60px, 15vw, 80px);
+            accent-color: var(--primary);
+            flex-shrink: 0;
         }
 
         .zoom-controls {
@@ -629,38 +508,20 @@
             padding: 0.5rem 1rem;
             background: rgba(26, 26, 30, 0.9);
             backdrop-filter: blur(20px);
-            border-radius: 12px; 
+            border-radius: 10px; 
             border: 1px solid var(--border);
+            flex-shrink: 0;
         }
         
         .zoom-value { 
-            min-width: 60px; 
+            min-width: 50px; 
             text-align: center; 
             font-family: 'Space Mono', monospace; 
-            font-size: 0.85rem; 
+            font-size: clamp(0.8rem, 2.5vw, 0.875rem);
             color: var(--primary); 
         }
 
-        .text-input-overlay {
-            position: absolute;
-            background: rgba(0,0,0,0.9);
-            border: 2px dashed var(--primary);
-            color: var(--text-primary);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 16px; 
-            padding: 8px;
-            min-width: 150px; 
-            outline: none; 
-            z-index: 50;
-            display: none; 
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-            border-radius: 4px;
-        }
-        
-        .text-input-overlay.active { 
-            display: block; 
-        }
-
+        /* Modal Responsivo */
         .modal {
             display: none; 
             position: fixed; 
@@ -676,45 +537,33 @@
             backdrop-filter: blur(10px);
         }
         
-        .modal.active { 
-            display: flex; 
+        .modal.active {             display: flex; 
         }
 
         .modal-content {
             background: var(--gradient-card); 
-            border-radius: 20px; 
-            padding: 1.5rem;
+            border-radius: 16px; 
+            padding: 1.25rem;
             max-width: 600px; 
             width: 100%; 
             max-height: 90vh; 
             overflow-y: auto;
             border: 1px solid rgba(0, 212, 255, 0.3);
-            box-shadow: 
-                0 20px 60px rgba(0,0,0,0.8), 
-                0 0 40px rgba(0, 212, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(0, 212, 255, 0.2);
             position: relative;
-        }
-        
-        .modal-content::before {
-            content: ''; 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            right: 0; 
-            height: 3px;
-            background: var(--gradient-button); 
-            border-radius: 20px 20px 0 0;
         }
         
         .modal-header { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            margin-bottom: 1rem; 
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
         
         .modal-title { 
-            font-size: 1.2rem; 
+            font-size: clamp(1rem, 4vw, 1.2rem);
             font-weight: 600; 
             color: var(--primary); 
         }
@@ -730,27 +579,23 @@
             height: 40px; 
             border-radius: 8px;
             transition: all 0.3s ease;
-        }
-        
-        .modal-close:hover { 
-            background: var(--bg-elevated); 
-            color: var(--primary); 
+            flex-shrink: 0;
         }
 
         .text-area {
             width: 100%; 
             min-height: 200px; 
             padding: 0.75rem;
-            border: 1px solid var(--border); 
-            border-radius: 12px;
+            border: 1px solid var(--border);             border-radius: 10px;
             background: var(--bg-elevated); 
             color: var(--text-primary);
             font-family: 'Space Mono', monospace; 
-            font-size: 0.85rem;
+            font-size: clamp(0.8rem, 2.5vw, 0.875rem);
             resize: vertical; 
             margin-bottom: 1rem;
         }
 
+        /* Loading */
         .loading { 
             display: none; 
             text-align: center; 
@@ -769,13 +614,13 @@
             border-radius: 50%; 
             animation: spin 1s linear infinite;
             margin: 0 auto 1rem;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
         }
         
         @keyframes spin { 
             to { transform: rotate(360deg); } 
         }
 
+        /* Toast Responsivo */
         .toast {
             position: fixed; 
             bottom: 1rem; 
@@ -783,17 +628,14 @@
             left: 1rem;
             background: var(--bg-elevated); 
             color: var(--text-primary);
-            padding: 0.85rem 1.25rem; 
+            padding: 0.875rem 1.25rem; 
             border-radius: 12px;
             border: 1px solid rgba(0, 212, 255, 0.3);
-            box-shadow: 
-                0 10px 30px rgba(0,0,0,0.6), 
-                0 0 20px rgba(0, 212, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(0, 212, 255, 0.2);
             display: none; 
             align-items: center; 
             gap: 0.75rem; 
-            z-index: 3000;
-            animation: slideIn 0.3s ease;
+            z-index: 3000;            animation: slideIn 0.3s ease;
             max-width: 400px; 
             margin: 0 auto;
             backdrop-filter: blur(10px);
@@ -804,19 +646,8 @@
         }
         
         @keyframes slideIn { 
-            from { 
-                transform: translateY(100px); 
-                opacity: 0; 
-            } 
-            to { 
-                transform: translateY(0); 
-                opacity: 1; 
-            } 
-        }
-        
-        .toast-icon { 
-            font-size: 1.2rem; 
-            color: var(--primary); 
+            from { transform: translateY(100px); opacity: 0; } 
+            to { transform: translateY(0); opacity: 1; } 
         }
 
         #file-input { 
@@ -836,145 +667,171 @@
             background: var(--border); 
             border-radius: 4px; 
         }
-        
-        ::-webkit-scrollbar-thumb:hover { 
-            background: var(--primary); 
-        }
 
+        /* MEDIA QUERIES - MOBILE */
         @media (max-width: 768px) {
-            .app-header { 
-                padding: 0.75rem 0.75rem; 
-                margin: 0.25rem; 
-                border-radius: 16px; 
+            html {
+                font-size: 14px;
             }
-            
-            .logo-text { 
-                font-size: 1.2rem; 
-            }
-            
-            .logo-icon { 
-                width: 40px; 
-                height: 40px; 
-                font-size: 1.5rem; 
-            }
-            
-            .main-container { 
-                padding: 0.5rem; 
-            }
-            
-            .toolbar { 
-                padding: 0.6rem; 
-                gap: 0.4rem; 
-            }
-            
-            .btn { 
-                padding: 0.5rem 0.8rem; 
-                font-size: 0.8rem; 
-                min-height: 40px; 
-            }
-            
-            .btn-icon { 
-                width: 40px; 
-                height: 40px; 
-            }
-            
-            .search-container { 
-                min-width: 100%; 
-                order: -1; 
-                flex-basis: 100%; 
-            }
-            
-            .viewer-container { 
-                padding: 0.5rem; 
-                min-height: 400px; 
-            }
-            
-            .page-nav-overlay { 
-                padding: 0.4rem 0.75rem; 
-                gap: 0.5rem; 
-            }
-            
-            .page-nav-overlay .btn-icon { 
-                width: 36px; 
-                height: 36px; 
-                font-size: 1.1rem; 
-            }
-            
-            .page-nav-overlay .page-info { 
-                font-size: 0.8rem; 
-                min-width: 80px; 
-            }
-            
-            .annotation-toolbar { 
-                padding: 0.5rem; 
-                gap: 0.4rem; 
-            }
-            
-            .tool-btn { 
-                padding: 0.4rem 0.6rem; 
-                font-size: 0.7rem; 
-                min-height: 36px; 
-            }
-            
-            .zoom-controls { 
-                padding: 0.4rem 0.75rem; 
-            }
-            
-            .modal-content { 
-                padding: 1rem; 
-            }
-            
-            .modal-title { 
-                font-size: 1rem; 
-            }
-            
-            .toast { 
-                bottom: 0.5rem; 
-                left: 0.5rem; 
-                right: 0.5rem; 
-            }
-        }
 
-        @media (max-width: 480px) {
-            .logo-text { 
-                font-size: 1.1rem; 
+            .app-header { 
+                padding: 0.625rem 0.75rem;
+                margin: 0.25rem;
+                border-radius: 12px;
             }
-            
+
             .logo-icon { 
                 width: 38px; 
                 height: 38px; 
                 font-size: 1.3rem; 
             }
-            
-            .btn { 
-                padding: 0.5rem 0.6rem; 
-                font-size: 0.75rem; 
+            .main-container { 
+                padding: 0.375rem; 
             }
-            
-            .btn span { 
-                display: none; 
+
+            .toolbar { 
+                padding: 0.625rem;
+                gap: 0.375rem; 
             }
-            
-            .tool-btn { 
-                font-size: 0.65rem; 
-                padding: 0.3rem 0.5rem; 
+
+            .search-container { 
+                min-width: 100%; 
+                order: -1; 
+                flex-basis: 100%;
+                margin-bottom: 0.25rem;
             }
-            
-            .tool-btn span { 
-                display: none; 
+
+            .viewer-container { 
+                padding: 0.5rem; 
+                min-height: 50vh; 
+            }
+
+            .page-nav-overlay { 
+                padding: 0.375rem 0.75rem;
+                gap: 0.5rem;
+            }
+
+            .annotation-toolbar { 
+                padding: 0.5rem; 
+                gap: 0.375rem;
+            }
+
+            .tool-group {
+                gap: 0.25rem;
+                padding-right: 0.375rem;
+            }
+
+            .tool-btn span {
+                display: none;
+            }
+
+            .tool-btn {
+                padding: 0.4rem 0.5rem;
+                font-size: 0.7rem;
+            }
+
+            .zoom-controls { 
+                padding: 0.375rem 0.75rem;
+            }
+            .modal-content { 
+                padding: 1rem; 
+                margin: 0.5rem;
+            }
+
+            .toast { 
+                bottom: 0.5rem; 
+                left: 0.5rem; 
+                right: 0.5rem;
+                padding: 0.75rem 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            html {
+                font-size: 13px;
+            }
+
+            .logo-text { 
+                font-size: 1rem; 
+            }
+
+            .logo-icon { 
+                width: 35px; 
+                height: 35px; 
+                font-size: 1.2rem; 
+            }
+
+            .btn span {
+                display: none;
+            }
+
+            .btn-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .toolbar-group {
+                gap: 0.25rem;
+            }
+
+            .tool-btn {
+                min-width: 36px;
+                justify-content: center;
+            }
+
+            .tool-btn span {
+                display: none;
+            }
+            .color-picker {
+                width: 36px;
+                height: 36px;
+            }
+
+            .size-slider {
+                width: 60px;
             }
         }
 
         @media (max-height: 500px) and (orientation: landscape) {
             .app-header { 
-                padding: 0.5rem 0.75rem; 
+                padding: 0.5rem 0.75rem;
             }
-            
+
             .viewer-container { 
-                min-height: 300px; 
+                min-height: 60vh; 
+            }
+
+            .toolbar {
+                margin-bottom: 0.5rem;
             }
         }
-    </style>
+
+        /* Touch device optimizations */
+        @media (hover: none) {
+            .btn:hover {
+                transform: none;
+            }
+            
+            .btn:active {
+                transform: scale(0.95);
+            }
+            
+            .tool-btn:hover {
+                transform: none;
+            }
+            
+            .tool-btn:active {
+                transform: scale(0.95);
+            }
+        }
+
+        /* Prevent text selection on UI elements */
+        .btn, .tool-btn, .page-nav-overlay, .toolbar {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }    </style>
 </head>
 <body>
     <header class="app-header">
@@ -999,7 +856,7 @@
             </div>
             <div class="search-container">
                 <span class="search-icon">🔍</span>
-                <input type="text" class="search-input" id="search-input" placeholder="Pesquisar... (Ctrl+F)">
+                <input type="text" class="search-input" id="search-input" placeholder="Pesquisar...">
             </div>
             <div class="toolbar-group">
                 <button class="btn btn-secondary btn-icon" id="copy-text-btn" title="Copiar texto">📋</button>
@@ -1019,13 +876,11 @@
             <div class="tool-group">
                 <input type="color" class="color-picker" id="annotation-color" value="#ffff00">
                 <input type="range" class="size-slider" id="annotation-size" min="1" max="30" value="15">
-                <span id="size-label" style="font-size: 0.75rem; color: var(--text-secondary); min-width: 25px;">15</span>
             </div>
             <div class="tool-group">
                 <button class="tool-btn" id="undo-btn">↩️ <span>Desfazer</span></button>
                 <button class="tool-btn" id="clear-btn">🗑️ <span>Limpar</span></button>
-                <button class="btn btn-primary" id="save-annotations">💾 <span>Salvar</span></button>
-                <button class="btn btn-secondary" id="exit-edit">✕ <span>Sair</span></button>
+                <button class="btn btn-primary" id="save-annotations">💾 <span>Salvar</span></button>                <button class="btn btn-secondary" id="exit-edit">✕ <span>Sair</span></button>
             </div>
         </div>
 
@@ -1052,7 +907,7 @@
                     <canvas id="pdf-canvas"></canvas>
                     <canvas id="annotation-canvas"></canvas>
                     <div class="text-layer" id="text-layer"></div>
-                    <textarea class="text-input-overlay" id="text-input-overlay" placeholder="Digite aqui..."></textarea>
+                    <textarea class="text-input-overlay" id="text-input-overlay" placeholder="Digite aqui..." style="display:none;"></textarea>
                 </div>
 
                 <div class="zoom-controls">
@@ -1071,15 +926,13 @@
                 <button class="modal-close" onclick="closeExtractModal()">✕</button>
             </div>
             <textarea class="text-area" id="extracted-text" readonly></textarea>
-            <div class="toolbar-group" style="justify-content: center;">
+            <div style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
                 <button class="btn btn-primary" onclick="copyExtractedText()">📋 Copiar tudo</button>
                 <button class="btn btn-secondary" onclick="downloadExtractedText()">💾 Salvar .txt</button>
-            </div>
-        </div>
+            </div>        </div>
     </div>
 
     <div class="toast" id="toast">
-        <span class="toast-icon">✓</span>
         <span id="toast-message">Operação realizada com sucesso!</span>
     </div>
 
@@ -1113,8 +966,6 @@
         const textLayer = document.getElementById('text-layer');
         const annotationToolbar = document.getElementById('annotation-toolbar');
         const pageContainer = document.getElementById('page-container');
-        const textInputOverlay = document.getElementById('text-input-overlay');
-        const sizeLabel = document.getElementById('size-label');
 
         function isMobile() {
             return window.innerWidth <= 768 || 'ontouchstart' in window;
@@ -1122,13 +973,12 @@
 
         function getOptimalScale() {
             const containerWidth = pageContainer.parentElement.clientWidth - 40;
-            if (isMobile()) return Math.min(1.5, containerWidth / 600);
-            return 1.5;
+            if (isMobile()) return Math.min(1.2, containerWidth / 600);
+            return 1.0;
         }
 
         fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (file && file.type === 'application/pdf') await loadPDF(file);
+            const file = e.target.files[0];            if (file && file.type === 'application/pdf') await loadPDF(file);
         });
 
         async function loadPDF(file) {
@@ -1177,8 +1027,7 @@
         }
 
         async function renderTextLayer(page, viewport) {
-            textLayer.innerHTML = '';
-            const textContent = await page.getTextContent();
+            textLayer.innerHTML = '';            const textContent = await page.getTextContent();
             
             textContent.items.forEach(item => {
                 if (!item.str) return;
@@ -1192,7 +1041,6 @@
                 textDiv.style.left = `${tx[4]}px`;
                 textDiv.style.top = `${tx[5] - fontSize}px`;
                 textDiv.style.fontSize = `${fontSize}px`;
-                textDiv.style.fontFamily = item.fontName || 'sans-serif';
                 
                 if (angle !== 0) {
                     textDiv.style.transform = `rotate(${angle * 180 / Math.PI}deg)`;
@@ -1209,7 +1057,6 @@
             textLines = [];
             highlightedRanges = [];
             const textContent = await page.getTextContent();
-            
             const lineMap = new Map();
             const yThreshold = 5;
             
@@ -1219,8 +1066,6 @@
                 const fontSize = Math.sqrt(tx[2] * tx[2] + tx[3] * tx[3]);
                 const x = tx[4];
                 const y = tx[5];
-                const w = item.width * scale;
-                const h = fontSize;
                 
                 let lineKey = null;
                 for (const [key, line] of lineMap.entries()) {
@@ -1231,28 +1076,22 @@
                 }
                 
                 if (lineKey === null) {
-                    lineKey = y;
-                    lineMap.set(lineKey, { y: y, words: [] });
+                    lineKey = y;                    lineMap.set(lineKey, { y: y, words: [] });
                 }
                 
-                lineMap.get(lineKey).words.push({ x, y, w, h, str: item.str });
+                lineMap.get(lineKey).words.push({ x, y, str: item.str });
             });
             
-            const sortedLines = Array.from(lineMap.entries())
+            textLines = Array.from(lineMap.entries())
                 .sort((a, b) => b[1].y - a[1].y)
                 .map(([key, line]) => {
                     line.words.sort((a, b) => a.x - b.x);
-                    const minX = Math.min(...line.words.map(w => w.x));
-                    const maxX = Math.max(...line.words.map(w => w.x + w.w));
-                    return { y: line.y, minX, maxX, words: line.words };
+                    return { y: line.y, words: line.words };
                 });
-            
-            textLines = sortedLines;
         }
 
         function findLineAtY(cursorY) {
             if (textLines.length === 0) return null;
-            
             let closest = null;
             let minDist = Infinity;
             
@@ -1264,15 +1103,14 @@
                 }
             });
             
-            if (minDist < 50) return closest;
-            return null;
+            return minDist < 50 ? closest : null;
         }
 
-        // EDIT MODE - CORREÇÃO AQUI
+        // EDIT MODE
         const editBtn = document.getElementById('edit-btn');
         editBtn.addEventListener('click', () => {
             if (!pdfDoc) { 
-                showToast('Abra um PDF primeiro', 'warning'); 
+                showToast('Abra um PDF primeiro'); 
                 return; 
             }
             isEditing = !isEditing;
@@ -1281,72 +1119,62 @@
                 annotationCanvas.classList.add('active');
                 pageContainer.classList.add('editing');
                 editBtn.classList.add('active');
-                updateCursorForTool();
                 showToast('Modo edição ativado!');
             } else {
                 exitEditMode();
             }
         });
 
-        function exitEditMode() {
-            isEditing = false;
+        function exitEditMode() {            isEditing = false;
             annotationToolbar.classList.remove('active');
             annotationCanvas.classList.remove('active');
             pageContainer.classList.remove('editing');
             editBtn.classList.remove('active');
-            textInputOverlay.classList.remove('active');
-            currentHighlightLine = null;
-            currentTool = 'pen'; // Reset para caneta
-            updateCursorForTool();
+            currentTool = 'pen';
+            updateActiveToolUI();
         }
 
         document.getElementById('exit-edit').addEventListener('click', exitEditMode);
 
-        // TOOL SELECTION - CORREÇÃO AQUI
+        // TOOL SELECTION - CORREÇÃO
         document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Remover active de todos os botões de ferramenta
-                document.querySelectorAll('.tool-btn[data-tool]').forEach(b => {
-                    b.classList.remove('active');
-                });
-                
-                // Adicionar active no botão clicado
                 const targetBtn = e.currentTarget;
-                targetBtn.classList.add('active');
+                const tool = targetBtn.dataset.tool;
                 
-                // Atualizar ferramenta atual
-                currentTool = targetBtn.dataset.tool;
-                updateCursorForTool();
-                
-                // Cor padrão para realce
-                if (currentTool === 'highlight-line') {
-                    document.getElementById('annotation-color').value = '#ffff00';
+                if (targetBtn.classList.contains('active')) {
+                    // Desativa todos se já estiver ativo
+                    document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
+                    currentTool = null;
+                    showToast('Ferramenta desativada');
+                } else {
+                    // Ativa apenas o clicado
+                    document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
+                    targetBtn.classList.add('active');
+                    currentTool = tool;
+                    
+                    if (currentTool === 'highlight-line') {
+                        document.getElementById('annotation-color').value = '#ffff00';
+                    }
                 }
             });
         });
 
-        function updateCursorForTool() {
-            annotationCanvas.classList.remove('eraser-cursor', 'highlight-cursor');
-            if (currentTool === 'eraser') {
-                annotationCanvas.classList.add('eraser-cursor');
-            } else if (currentTool === 'highlight-line') {
-                annotationCanvas.classList.add('highlight-cursor');
-            }
+        function updateActiveToolUI() {
+            document.querySelectorAll('.tool-btn[data-tool]').forEach(b => {
+                b.classList.toggle('active', b.dataset.tool === currentTool);
+            });
         }
 
         const colorPicker = document.getElementById('annotation-color');
         const sizeSlider = document.getElementById('annotation-size');
-        sizeSlider.addEventListener('input', () => {
-            sizeLabel.textContent = sizeSlider.value;
-        });
 
         // DRAWING
         function getPos(e) {
             const rect = annotationCanvas.getBoundingClientRect();
             const scaleX = annotationCanvas.width / rect.width;
             const scaleY = annotationCanvas.height / rect.height;
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             return {
                 x: (clientX - rect.left) * scaleX,
                 y: (clientY - rect.top) * scaleY
@@ -1373,7 +1201,10 @@
         });
 
         function startDraw(e) {
-            if (!isEditing) return;
+            if (!isEditing || !currentTool) {
+                if (!isEditing) showToast('Ative o modo edição primeiro');
+                return;
+            }
             
             const pos = getPos(e);
 
@@ -1392,8 +1223,7 @@
             if (currentTool === 'pen' || currentTool === 'underline') {
                 annCtx.beginPath();
                 annCtx.moveTo(pos.x, pos.y);
-            } else if (currentTool === 'highlight-line') {
-                const lineInfo = findLineAtY(pos.y);
+            } else if (currentTool === 'highlight-line') {                const lineInfo = findLineAtY(pos.y);
                 if (lineInfo) {
                     currentHighlightLine = {
                         lineIdx: lineInfo.idx,
@@ -1442,8 +1272,7 @@
                     drawHighlightPreview();
                 }
             } else if (currentTool === 'eraser') {
-                eraseAt(pos.x, pos.y);
-            }
+                eraseAt(pos.x, pos.y);            }
 
             lastX = pos.x;
             lastY = pos.y;
@@ -1455,16 +1284,10 @@
             annCtx.clearRect(0, 0, annotationCanvas.width, annotationCanvas.height);
             redrawAnnotations();
             
-            highlightedRanges.forEach(range => {
-                if (range.lineIdx === currentHighlightLine.lineIdx) {
-                    drawHighlightRect(range);
-                }
-            });
-            
             const line = currentHighlightLine.line;
             const color = colorPicker.value;
             const size = parseInt(sizeSlider.value);
-            const height = Math.max(size, line.words[0]?.h || 15);
+            const height = Math.max(size, 15);
             
             const x1 = Math.min(currentHighlightLine.startX, currentHighlightLine.endX);
             const x2 = Math.max(currentHighlightLine.startX, currentHighlightLine.endX);
@@ -1474,19 +1297,6 @@
             annCtx.globalAlpha = 0.4;
             annCtx.fillStyle = color;
             annCtx.fillRect(x1, y, x2 - x1, height);
-            annCtx.globalAlpha = 1;
-        }
-
-        function drawHighlightRect(range) {
-            const line = textLines[range.lineIdx];
-            if (!line) return;
-            const height = Math.max(range.size, line.words[0]?.h || 15);
-            const y = line.y - height * 0.3;
-            
-            annCtx.globalCompositeOperation = 'source-over';
-            annCtx.globalAlpha = 0.4;
-            annCtx.fillStyle = range.color;
-            annCtx.fillRect(range.startX, y, range.endX - range.startX, height);
             annCtx.globalAlpha = 1;
         }
 
@@ -1511,8 +1321,7 @@
                     highlightedRanges.push({
                         lineIdx: currentHighlightLine.lineIdx,
                         startX: x1,
-                        endX: x2,
-                        color: colorPicker.value,
+                        endX: x2,                        color: colorPicker.value,
                         size: parseInt(sizeSlider.value)
                     });
                     
@@ -1538,25 +1347,16 @@
                     startX, startY,
                     endX: lastX, endY: lastY
                 });
-            } else if (currentTool === 'eraser') {
-                if (!annotations[currentPage]) annotations[currentPage] = [];
-                annotations[currentPage].push({
-                    tool: 'eraser',
-                    canvasData: annCtx.getImageData(0, 0, annotationCanvas.width, annotationCanvas.height)
-                });
             }
+
+            redrawAllAnnotations();
         }
 
         function redrawAnnotations() {
             const pageAnnotations = annotations[currentPage] || [];
             
             pageAnnotations.forEach(ann => {
-                if (ann.tool === 'eraser') {
-                    if (ann.canvasData) {
-                        annCtx.putImageData(ann.canvasData, 0, 0);
-                    }
-                    return;
-                }
+                if (ann.tool === 'eraser') return;
                 
                 annCtx.strokeStyle = ann.color;
                 annCtx.lineWidth = ann.size;
@@ -1570,39 +1370,26 @@
                     annCtx.moveTo(ann.startX, ann.startY);
                     annCtx.lineTo(ann.endX, ann.endY);
                     annCtx.stroke();
-                }
-            });
+                }            });
         }
 
         function redrawAllAnnotations() {
             annCtx.clearRect(0, 0, annotationCanvas.width, annotationCanvas.height);
             
             highlightedRanges.forEach(range => {
-                drawHighlightRect(range);
+                const line = textLines[range.lineIdx];
+                if (!line) return;
+                const height = Math.max(range.size, 15);
+                const y = line.y - height * 0.3;
+                
+                annCtx.globalCompositeOperation = 'source-over';
+                annCtx.globalAlpha = 0.4;
+                annCtx.fillStyle = range.color;
+                annCtx.fillRect(range.startX, y, range.endX - range.startX, height);
+                annCtx.globalAlpha = 1;
             });
             
-            const pageAnnotations = annotations[currentPage] || [];
-            pageAnnotations.forEach(ann => {
-                if (ann.tool === 'highlight-line') return;
-                if (ann.tool === 'eraser') {
-                    if (ann.canvasData) annCtx.putImageData(ann.canvasData, 0, 0);
-                    return;
-                }
-                
-                annCtx.strokeStyle = ann.color;
-                annCtx.lineWidth = ann.size;
-                annCtx.lineCap = 'round';
-                annCtx.lineJoin = 'round';
-                annCtx.globalAlpha = 1;
-                annCtx.globalCompositeOperation = 'source-over';
-                annCtx.beginPath();
-
-                if (ann.tool === 'pen' || ann.tool === 'underline') {
-                    annCtx.moveTo(ann.startX, ann.startY);
-                    annCtx.lineTo(ann.endX, ann.endY);
-                    annCtx.stroke();
-                }
-            });
+            redrawAnnotations();
         }
 
         function loadAnnotationsForPage(num) {
@@ -1613,23 +1400,10 @@
             redrawAllAnnotations();
         }
 
-        // TEXT INPUT
         function showTextInput(x, y) {
-            textInputOverlay.style.left = x + 'px';
-            textInputOverlay.style.top = y + 'px';
-            textInputOverlay.style.color = colorPicker.value;
-            textInputOverlay.style.fontSize = (parseInt(sizeSlider.value) * 0.8 + 10) + 'px';
-            textInputOverlay.classList.add('active');
-            textInputOverlay.value = '';
-            textInputOverlay.focus();
-        }
-
-        textInputOverlay.addEventListener('blur', () => {
-            const text = textInputOverlay.value.trim();
+            const text = prompt('Digite o texto:');
             if (text) {
                 saveUndoState();
-                const x = parseFloat(textInputOverlay.style.left);
-                const y = parseFloat(textInputOverlay.style.top);
                 if (!annotations[currentPage]) annotations[currentPage] = [];
                 annotations[currentPage].push({
                     tool: 'text', text, x, y,
@@ -1638,23 +1412,13 @@
                 });
                 redrawAllAnnotations();
                 annCtx.fillStyle = colorPicker.value;
-                annCtx.font = `${parseInt(sizeSlider.value) * 0.8 + 10}px 'DM Sans', sans-serif`;
+                annCtx.font = `${parseInt(sizeSlider.value)}px 'DM Sans', sans-serif`;
                 annCtx.globalAlpha = 1;
                 annCtx.globalCompositeOperation = 'source-over';
-                annCtx.fillText(text, x, y + parseInt(sizeSlider.value) * 0.8 + 10);
+                annCtx.fillText(text, x, y);
                 showToast('Texto adicionado!');
             }
-            textInputOverlay.classList.remove('active');
-        });
-
-        textInputOverlay.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                textInputOverlay.blur();
-            }
-        });
-
-        // UNDO / CLEAR
+        }
         function saveUndoState() {
             undoStack.push({
                 annotations: JSON.parse(JSON.stringify(annotations[currentPage] || [])),
@@ -1666,7 +1430,7 @@
 
         document.getElementById('undo-btn').addEventListener('click', () => {
             if (undoStack.length === 0) { 
-                showToast('Nada para desfazer', 'warning'); 
+                showToast('Nada para desfazer'); 
                 return; 
             }
             const state = undoStack.pop();
@@ -1691,7 +1455,7 @@
                 localStorage.setItem('pdf-annotations', JSON.stringify(annotations));
                 showToast('Anotações salvas!');
             } catch (e) { 
-                showToast('Erro ao salvar', 'error'); 
+                showToast('Erro ao salvar'); 
             }
         });
 
@@ -1704,8 +1468,7 @@
         document.getElementById('prev-page').addEventListener('click', () => {
             if (currentPage > 1) renderPage(currentPage - 1);
         });
-        
-        document.getElementById('next-page').addEventListener('click', () => {
+                document.getElementById('next-page').addEventListener('click', () => {
             if (pdfDoc && currentPage < pdfDoc.numPages) renderPage(currentPage + 1);
         });
 
@@ -1733,6 +1496,7 @@
             if (!pdfDoc) return;
             const query = e.target.value.trim();
             if (query.length < 2) return;
+            
             for (let p = 1; p <= pdfDoc.numPages; p++) {
                 const page = await pdfDoc.getPage(p);
                 const tc = await page.getTextContent();
@@ -1751,10 +1515,9 @@
         // COPY TEXT
         document.getElementById('copy-text-btn').addEventListener('click', async () => {
             if (!pdfDoc) { 
-                showToast('Abra um PDF primeiro', 'warning'); 
+                showToast('Abra um PDF primeiro'); 
                 return; 
-            }
-            const page = await pdfDoc.getPage(currentPage);
+            }            const page = await pdfDoc.getPage(currentPage);
             const tc = await page.getTextContent();
             const text = tc.items.map(i => i.str).join(' ');
             
@@ -1776,7 +1539,7 @@
 
         editBtn.addEventListener('dblclick', async () => {
             if (!pdfDoc) { 
-                showToast('Abra um PDF primeiro', 'warning'); 
+                showToast('Abra um PDF primeiro'); 
                 return; 
             }
             const page = await pdfDoc.getPage(currentPage);
@@ -1803,8 +1566,7 @@
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
                 showToast('Texto copiado!');
-            });
-        }
+            });        }
         
         function downloadExtractedText() {
             const text = document.getElementById('extracted-text').value;
@@ -1819,7 +1581,7 @@
         }
 
         document.getElementById('download-btn').addEventListener('click', () => {
-            showToast('Funcionalidade em desenvolvimento', 'warning');
+            showToast('Funcionalidade em desenvolvimento');
         });
 
         document.addEventListener('keydown', (e) => {
@@ -1847,13 +1609,13 @@
         }
         
         function showToast(msg) {
+            const toast = document.getElementById('toast');
             document.getElementById('toast-message').textContent = msg;
-            document.getElementById('toast').classList.add('show');
-            setTimeout(() => document.getElementById('toast').classList.remove('show'), 3000);
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
         
-        function debounce(func, wait) {
-            let timeout;
+        function debounce(func, wait) {            let timeout;
             return function(...args) {
                 clearTimeout(timeout);
                 timeout = setTimeout(() => func(...args), wait);
@@ -1870,6 +1632,16 @@
                 }
             }, 250);
         });
+
+        // Prevenir zoom em double-tap em dispositivos móveis
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').catch(() => {});
