@@ -1,0 +1,33 @@
+/* Camada de texto - INVISÍVEL mas selecionável */
+.text-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    line-height: 1.0;
+    pointer-events: none;
+    opacity: 1;
+}
+
+.text-layer .text-item {
+    position: absolute;
+    color: transparent; /* ← Texto invisível! */
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0% 0%;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+/* Quando o usuário selecionar, mostrar em azul */
+.text-layer .text-item::selection {
+    background: rgba(0, 212, 255, 0.4);
+    color: rgba(0, 212, 255, 0.4);
+}
+
+.text-layer .text-item::-moz-selection {
+    background: rgba(0, 212, 255, 0.4);
+    color: rgba(0, 212, 255, 0.4);
+}
