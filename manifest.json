@@ -4,8 +4,8 @@
   "description": "Leitor e gerenciador de arquivos PDF",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0f0e17",
-  "theme_color": "#0f0e17",
+  "background_color": "#000000",
+  "theme_color": "#00ff88",
   "orientation": "any",
   "icons": [
     {
