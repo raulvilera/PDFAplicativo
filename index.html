@@ -1,956 +1,1081 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0f0e17" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="PDF Reader" />
-  <meta name="description" content="Leitor e gerenciador de PDFs" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <title>PDF·Leitor</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF·Leitor</title>
+    <link rel="manifest" href="./manifest.json">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    :root {
-      --bg:       #0f0e17;
-      --surface:  #1a1928;
-      --card:     #22213a;
-      --accent:   #ff6b35;
-      --accent2:  #e84855;
-      --text:     #fffffe;
-      --muted:    #a7a9be;
-      --border:   #2e2d4a;
-      --success:  #2cb67d;
-      --info:     #7f5af0;
-      --highlight:        rgba(255,200,0,0.38);
-      --highlight-active: rgba(255,107,53,0.65);
-      --sel-color:        rgba(100,160,255,0.35);
-      --radius:   14px;
-    }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --bg-dark: #0f0e17;
+            --bg-card: #1a1a2e;
+            --bg-elevated: #252542;
+            --text-primary: #fffffe;
+            --text-secondary: #94a3b8;
+            --border: #333355;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100dvh; overflow-x: hidden; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-    /* ── Header ── */
-    header {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(15,14,23,.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border); padding: 14px 20px;
-      display: flex; align-items: center; gap: 12px;
-    }
-    .logo { font-family: 'Space Mono', monospace; font-size: 1.15rem; font-weight: 700; letter-spacing: -.5px; color: var(--text); flex: 1; }
-    .logo span { color: var(--accent); }
-    #btn-open {
-      background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: #fff;
-      font-family: 'DM Sans', sans-serif; font-size: .85rem; font-weight: 600;
-      padding: 9px 18px; border-radius: 50px; cursor: pointer;
-      display: flex; align-items: center; gap: 6px; transition: opacity .2s, transform .15s; white-space: nowrap;
-    }
-    #btn-open:active { transform: scale(.95); opacity: .9; }
+        /* 3D Cover Design */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3);
+        }
 
-    /* ── Library ── */
-    #library { padding: 20px 16px; }
-    .section-label { font-family: 'Space Mono', monospace; font-size: .7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 14px; }
-    #file-list { display: flex; flex-direction: column; gap: 10px; }
-    .file-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px;
-      display: flex; align-items: center; gap: 14px; cursor: pointer;
-      transition: background .2s, border-color .2s, transform .15s; animation: fadeUp .3s ease both;
-    }
-    .file-card:active { transform: scale(.98); }
-    .file-card:hover  { border-color: var(--accent); background: #2a2840; }
-    .file-icon { width: 44px; height: 44px; background: linear-gradient(135deg,#2a1a10,#3d1f0f); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.3rem; }
-    .file-info { flex: 1; overflow: hidden; }
-    .file-name { font-size: .92rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .file-meta { font-size: .75rem; color: var(--muted); margin-top: 2px; }
-    .file-actions { display: flex; gap: 6px; }
-    .icon-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: .85rem; transition: all .2s; }
-    .icon-btn:hover, .icon-btn:active { color: var(--accent); border-color: var(--accent); }
-    .icon-btn.del:hover, .icon-btn.del:active { color: var(--accent2); border-color: var(--accent2); }
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
 
-    /* ── Empty state ── */
-    #empty-state { text-align: center; padding: 60px 20px; }
-    .empty-icon { font-size: 4rem; margin-bottom: 16px; filter: grayscale(.5); }
-    .empty-title { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-    .empty-sub { font-size: .85rem; color: var(--muted); line-height: 1.5; }
+        .header-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-    /* ── Reader overlay ── */
-    #reader-overlay { display: none; position: fixed; inset: 0; z-index: 200; background: var(--bg); flex-direction: column; }
-    #reader-overlay.open { display: flex; }
+        .logo-3d {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
 
-    /* ── Reader header ── */
-    #reader-header {
-      background: rgba(15,14,23,.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border); padding: 9px 12px;
-      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
-      position: relative; min-width: 0;
-    }
-    #back-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all .2s; flex-shrink: 0; }
-    #back-btn:active { transform: scale(.9); }
-    #reader-title { flex: 1; font-size: .78rem; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0; }
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            box-shadow: 
+                0 10px 30px rgba(0,0,0,0.3),
+                inset 0 2px 10px rgba(255,255,255,0.3);
+            transform: perspective(500px) rotateY(-15deg) rotateX(10deg);
+            transition: transform 0.3s ease;
+        }
 
-    /* ── Menu button (⋯) ── */
-    #menu-btn {
-      background: var(--card); border: 1px solid var(--border); color: var(--text);
-      width: 34px; height: 34px; border-radius: 10px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-      transition: all .2s; flex-shrink: 0;
-    }
-    #menu-btn:active { transform: scale(.9); }
-    #menu-btn.open { color: var(--accent); border-color: var(--accent); }
+        .logo-icon:hover {
+            transform: perspective(500px) rotateY(0deg) rotateX(0deg) scale(1.05);
+        }
 
-    /* ── Dropdown action menu ── */
-    #action-menu {
-      display: none; position: absolute; top: 52px; right: 10px; z-index: 400;
-      background: rgba(22,21,40,0.98); border: 1px solid var(--border);
-      border-radius: 14px; padding: 6px;
-      box-shadow: 0 8px 40px rgba(0,0,0,.8);
-      min-width: 210px;
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      animation: popIn .18s ease;
-    }
-    #action-menu.open { display: block; }
-    .menu-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 11px 14px; border-radius: 10px; cursor: pointer;
-      font-size: .88rem; font-weight: 500; color: var(--text);
-      transition: background .15s; border: none; background: none;
-      width: 100%; text-align: left; font-family: 'DM Sans', sans-serif;
-    }
-    .menu-item:active { background: var(--card); }
-    .menu-item .mi-icon { font-size: 1.05rem; width: 22px; text-align: center; flex-shrink: 0; }
-    .menu-item .mi-label { flex: 1; }
-    .menu-item .mi-badge { font-size: .65rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; flex-shrink: 0; }
-    .menu-item.on { background: rgba(255,255,255,.04); }
-    .menu-item.on .mi-badge { background: rgba(255,107,53,.25); color: var(--accent); }
-    .menu-divider { height: 1px; background: var(--border); margin: 4px 8px; }
+        .logo-text {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            background: linear-gradient(to bottom, #fff, #e0e0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-    /* hdr-btn kept for compat but unused */
-    .hdr-btn { display: none; }
-    #download-btn { display: none; }
+        .app-title {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            font-weight: 300;
+        }
 
-    /* ── Page bar ── */
-    #page-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 7px 12px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-    .nav-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: .9rem; display: flex; align-items: center; justify-content: center; transition: all .2s; }
-    .nav-btn:disabled { opacity: .3; cursor: default; }
-    .nav-btn:not(:disabled):active { transform: scale(.9); border-color: var(--accent); }
-    #page-info { font-family: 'Space Mono', monospace; font-size: .72rem; color: var(--muted); flex: 1; text-align: center; }
-    .zoom-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all .2s; }
-    .zoom-btn:active { transform: scale(.9); }
-    #zoom-label { font-family: 'Space Mono', monospace; font-size: .68rem; color: var(--muted); min-width: 36px; text-align: center; }
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
 
-    /* ── Canvas area ── */
-    #canvas-container {
-      flex: 1; overflow: auto; -webkit-overflow-scrolling: touch;
-      display: flex; justify-content: center; align-items: flex-start;
-      padding: 12px; background: #08070f; position: relative;
-    }
-    #canvas-wrapper { position: relative; display: inline-block; }
-    #pdf-canvas { display: block; border-radius: 4px; box-shadow: 0 4px 40px rgba(0,0,0,.7); }
+        /* Toolbar */
+        .toolbar {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-    /* ── Text layer (search highlights + selectable text) ── */
-    #text-layer {
-      position: absolute; top: 0; left: 0; pointer-events: none; overflow: hidden;
-    }
-    #text-layer .highlight { position: absolute; background: var(--highlight); border-radius: 2px; pointer-events: none; }
-    #text-layer .highlight.active { background: var(--highlight-active); outline: 2px solid var(--accent); }
+        .toolbar-group {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
 
-    /* ── Selectable text layer (copy mode) ── */
-    #select-layer {
-      position: absolute; top: 0; left: 0; overflow: hidden;
-      display: none; cursor: text;
-    }
-    #select-layer.active { display: block; pointer-events: all; }
-    #select-layer span {
-      position: absolute; color: transparent; white-space: pre;
-      cursor: text; user-select: text; -webkit-user-select: text;
-      transform-origin: 0% 0%;
-    }
-    #select-layer span::selection { background: var(--sel-color); }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
 
-    /* ── Copy mode hint bar ── */
-    #mode-hint {
-      display: none; position: absolute; bottom: 16px; left: 50%;
-      transform: translateX(-50%);
-      background: rgba(127,90,240,.92); border: 1px solid var(--info);
-      color: #fff; font-size: .8rem; font-weight: 600;
-      padding: 8px 18px; border-radius: 50px;
-      white-space: nowrap; z-index: 40; pointer-events: none;
-      box-shadow: 0 4px 20px rgba(0,0,0,.5);
-      animation: popIn .2s ease;
-    }
-    #mode-hint.show { display: block; }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
 
-    /* ── Copy action popup (appears after selection) ── */
-    #copy-popup {
-      display: none; position: fixed; z-index: 300;
-      background: rgba(22,21,40,.98); border: 1px solid var(--info);
-      border-radius: 12px; padding: 10px 14px;
-      box-shadow: 0 8px 32px rgba(0,0,0,.7);
-      min-width: 220px; max-width: 90vw;
-      animation: popIn .15s ease;
-    }
-    #copy-popup.show { display: block; }
-    #copy-popup-text {
-      font-size: .8rem; color: var(--muted); margin-bottom: 8px;
-      max-height: 60px; overflow: hidden; text-overflow: ellipsis;
-      white-space: nowrap; font-family: 'Space Mono', monospace;
-    }
-    #copy-popup-btns { display: flex; gap: 8px; }
-    .cp-btn {
-      flex: 1; border: none; border-radius: 8px; padding: 8px 6px;
-      font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 600;
-      cursor: pointer; transition: opacity .2s, transform .15s;
-    }
-    .cp-btn:active { transform: scale(.95); opacity: .85; }
-    .cp-btn.confirm { background: var(--info); color: #fff; }
-    .cp-btn.cancel  { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
 
-    /* ── Edit overlay ── */
-    #edit-overlay {
-      display: none; position: fixed; inset: 0; z-index: 250;
-      background: rgba(10,9,20,.96); flex-direction: column;
-    }
-    #edit-overlay.open { display: flex; }
-    #edit-header {
-      background: rgba(15,14,23,.95); border-bottom: 1px solid var(--border);
-      padding: 12px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
-    }
-    #edit-header .title { flex: 1; font-size: .88rem; font-weight: 600; color: var(--success); }
-    .edit-act-btn {
-      border: none; border-radius: 8px; padding: 8px 14px;
-      font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 600;
-      cursor: pointer; transition: all .2s;
-    }
-    #edit-copy-all { background: var(--info); color: #fff; }
-    #edit-close-btn { background: var(--card); border: 1px solid var(--border); color: var(--muted); }
-    #edit-textarea {
-      flex: 1; background: #0d0c1a; color: var(--text);
-      border: none; outline: none; resize: none;
-      font-family: 'DM Sans', sans-serif; font-size: .93rem; line-height: 1.65;
-      padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch;
-    }
-    #edit-footer {
-      background: rgba(15,14,23,.95); border-top: 1px solid var(--border);
-      padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
-    }
-    #edit-info { flex: 1; font-size: .75rem; color: var(--muted); font-family: 'Space Mono', monospace; }
-    #edit-save-btn { background: var(--success); color: #fff; border: none; border-radius: 8px; padding: 9px 20px; font-family: 'DM Sans', sans-serif; font-size: .85rem; font-weight: 600; cursor: pointer; transition: all .2s; }
-    #edit-save-btn:active { transform: scale(.95); }
+        .btn-secondary {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
 
-    /* ── Search bar (flutuante sobre o PDF) ── */
-    #search-bar {
-      display: none; position: absolute; top: 12px; right: 12px; z-index: 50;
-      background: rgba(22,21,40,0.97); border: 1px solid var(--accent); border-radius: 12px;
-      padding: 8px 10px; gap: 7px; align-items: center;
-      box-shadow: 0 6px 32px rgba(0,0,0,.6);
-      min-width: 280px; max-width: calc(100vw - 24px);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      animation: popIn .18s ease;
-    }
-    #search-bar.open { display: flex; }
-    #search-input {
-      flex: 1; background: var(--card); border: 1px solid var(--border);
-      border-radius: 8px; padding: 7px 10px; color: var(--text);
-      font-family: 'DM Sans', sans-serif; font-size: .88rem; outline: none;
-      transition: border-color .2s; min-width: 0;
-    }
-    #search-input:focus { border-color: var(--accent); }
-    #search-input::placeholder { color: var(--muted); }
-    #search-count { font-family: 'Space Mono', monospace; font-size: .68rem; color: var(--muted); white-space: nowrap; min-width: 44px; text-align: center; }
-    .srch-nav { background: var(--card); border: 1px solid var(--border); color: var(--muted); width: 28px; height: 28px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: .85rem; transition: all .2s; flex-shrink: 0; }
-    .srch-nav:disabled { opacity: .3; cursor: default; }
-    .srch-nav:not(:disabled):active { color: var(--accent); border-color: var(--accent); }
-    #srch-close { background: none; border: none; color: var(--muted); width: 24px; height: 24px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: color .2s; flex-shrink: 0; padding: 0; }
-    #srch-close:hover { color: var(--accent2); }
+        .btn-secondary:hover {
+            background: var(--border);
+            transform: translateY(-2px);
+        }
 
-    /* ── Spinner / progress ── */
-    #loading-spinner { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 40px; color: var(--muted); font-size: .85rem; }
-    #loading-spinner.show { display: flex; }
-    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
-    #progress-bar { height: 3px; background: linear-gradient(90deg,var(--accent),var(--accent2)); width: 0%; transition: width .3s; flex-shrink: 0; }
+        .btn-icon {
+            padding: 0.75rem;
+            border-radius: 10px;
+            width: 44px;
+            height: 44px;
+            justify-content: center;
+        }
 
-    /* ── Toast ── */
-    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 10px 20px; border-radius: 50px; font-size: .82rem; opacity: 0; transition: all .3s ease; z-index: 999; white-space: nowrap; pointer-events: none; }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            flex: 1;
+            min-width: 300px;
+            max-width: 500px;
+        }
 
-    @keyframes spin    { to { transform: rotate(360deg); } }
-    @keyframes fadeUp  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes popIn   { from { opacity:0; transform:translateY(-8px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
-  </style>
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-top: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+
+        .search-result-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-result-item:hover {
+            background: var(--bg-card);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        /* PDF Viewer Container */
+        .viewer-container {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            min-height: 600px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        /* PDF Canvas */
+        .pdf-wrapper {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .pdf-wrapper.active {
+            display: flex;
+        }
+
+        .page-container {
+            position: relative;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+
+        #pdf-canvas {
+            display: block;
+            cursor: text;
+        }
+
+        .text-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            opacity: 0.2;
+            line-height: 1.0;
+        }
+
+        .text-layer ::selection {
+            background: rgba(99, 102, 241, 0.3);
+        }
+
+        /* Page Navigation */
+        .page-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-elevated);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .page-info {
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        /* Zoom Controls */
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-elevated);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .zoom-value {
+            min-width: 60px;
+            text-align: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Annotation Tools */
+        .annotation-toolbar {
+            background: var(--bg-elevated);
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid var(--border);
+        }
+
+        .tool-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            padding-right: 1rem;
+            border-right: 1px solid var(--border);
+        }
+
+        .tool-group:last-child {
+            border-right: none;
+        }
+
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .tool-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+        }
+
+        .tool-btn:hover {
+            border-color: var(--primary);
+            background: var(--primary);
+        }
+
+        .tool-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        /* Text Extraction Area */
+        .text-area {
+            width: 100%;
+            min-height: 300px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Highlight */
+        .highlight {
+            background: rgba(245, 158, 11, 0.4);
+            padding: 2px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo-text {
+                font-size: 1.8rem;
+            }
+
+            .logo-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 2rem;
+            }
+
+            .toolbar {
+                padding: 1rem;
+            }
+
+            .search-container {
+                min-width: 100%;
+                order: -1;
+            }
+
+            .viewer-container {
+                padding: 1rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* File Input */
+        #file-input {
+            display: none;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 3000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-icon {
+            font-size: 1.2rem;
+        }
+    </style>
 </head>
 <body>
-
-<input type="file" id="file-input" accept=".pdf,application/pdf" style="display:none" multiple />
-
-<!-- ── Main screen ── -->
-<header>
-  <div class="logo">PDF<span>·</span>Leitor</div>
-  <button id="btn-open" onclick="document.getElementById('file-input').click()">
-    <span>＋</span> Abrir PDF
-  </button>
-</header>
-
-<div id="library">
-  <div class="section-label">Biblioteca</div>
-  <div id="file-list"></div>
-  <div id="empty-state">
-    <div class="empty-icon">📂</div>
-    <div class="empty-title">Nenhum PDF aberto</div>
-    <div class="empty-sub">Toque em <strong>+ Abrir PDF</strong> para carregar<br>arquivos do seu dispositivo.</div>
-  </div>
-</div>
-
-<!-- ── Reader overlay ── -->
-<div id="reader-overlay">
-  <div id="reader-header">
-    <button id="back-btn" onclick="closeReader()">←</button>
-    <div id="reader-title">—</div>
-    <button id="menu-btn" onclick="toggleMenu()" title="Opções">⋯</button>
-
-    <!-- Dropdown menu -->
-    <div id="action-menu">
-      <button class="menu-item" id="mi-search" onclick="menuAction('search')">
-        <span class="mi-icon">🔍</span>
-        <span class="mi-label">Pesquisar</span>
-        <span class="mi-badge">Ctrl+F</span>
-      </button>
-      <button class="menu-item" id="mi-copy" onclick="menuAction('copy')">
-        <span class="mi-icon">📋</span>
-        <span class="mi-label">Copiar texto</span>
-        <span class="mi-badge">Selecionar</span>
-      </button>
-      <button class="menu-item" id="mi-edit" onclick="menuAction('edit')">
-        <span class="mi-icon">✏️</span>
-        <span class="mi-label">Editar / Extrair</span>
-        <span class="mi-badge">Página atual</span>
-      </button>
-      <div class="menu-divider"></div>
-      <button class="menu-item" onclick="menuAction('download')">
-        <span class="mi-icon">⬇</span>
-        <span class="mi-label">Baixar PDF</span>
-      </button>
-    </div>
-  </div>
-  <div id="progress-bar"></div>
-
-  <div id="page-bar">
-    <button class="nav-btn" id="prev-btn" onclick="changePage(-1)">‹</button>
-    <div id="page-info">— / —</div>
-    <button class="nav-btn" id="next-btn" onclick="changePage(1)">›</button>
-    <button class="zoom-btn" onclick="changeZoom(-0.15)">−</button>
-    <div id="zoom-label">100%</div>
-    <button class="zoom-btn" onclick="changeZoom(0.15)">+</button>
-  </div>
-
-  <div id="canvas-container" style="position:relative">
-    <!-- Barra de pesquisa flutuante -->
-    <div id="search-bar">
-      <input id="search-input" type="search" placeholder="Pesquisar no PDF…"
-             oninput="onSearchInput()" onkeydown="onSearchKey(event)" />
-      <span id="search-count">—</span>
-      <button class="srch-nav" id="srch-prev" title="Anterior" onclick="navigateMatch(-1)" disabled>↑</button>
-      <button class="srch-nav" id="srch-next" title="Próximo"  onclick="navigateMatch(1)"  disabled>↓</button>
-      <button id="srch-close" title="Fechar" onclick="toggleSearch()">✕</button>
-    </div>
-
-    <!-- Dica de modo cópia -->
-    <div id="mode-hint">📋 Selecione o texto com o dedo e copie</div>
-
-    <div id="loading-spinner" class="show">
-      <div class="spinner"></div>
-      <span>Carregando PDF…</span>
-    </div>
-
-    <div id="canvas-wrapper">
-      <canvas id="pdf-canvas"></canvas>
-      <!-- camada de destaques de busca -->
-      <div id="text-layer"></div>
-      <!-- camada de texto selecionável (modo cópia) -->
-      <div id="select-layer"></div>
-    </div>
-  </div>
-</div>
-
-<!-- Popup de confirmação de cópia -->
-<div id="copy-popup">
-  <div id="copy-popup-text"></div>
-  <div id="copy-popup-btns">
-    <button class="cp-btn confirm" onclick="confirmCopy()">📋 Copiar</button>
-    <button class="cp-btn cancel"  onclick="dismissCopyPopup()">Cancelar</button>
-  </div>
-</div>
-
-<!-- ── Edit overlay ── -->
-<div id="edit-overlay">
-  <div id="edit-header">
-    <span class="title">✏️ Texto extraído — Página <span id="edit-page-label">1</span></span>
-    <button class="edit-act-btn" id="edit-copy-all" onclick="editCopyAll()">📋 Copiar tudo</button>
-    <button class="edit-act-btn" id="edit-close-btn" onclick="closeEditOverlay()">✕ Fechar</button>
-  </div>
-  <textarea id="edit-textarea" spellcheck="false" placeholder="Extraindo texto do PDF…"></textarea>
-  <div id="edit-footer">
-    <span id="edit-info">—</span>
-    <button id="edit-save-btn" onclick="editSave()">💾 Salvar .txt</button>
-  </div>
-</div>
-
-<div id="toast"></div>
-
-<script>
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-  // ── State ──
-  let files         = [];
-  let currentFile   = null;
-  let pdfDoc        = null;
-  let currentPage   = 1;
-  let zoom          = 1.0;
-  let renderTask    = null;
-  let copyModeOn    = false;
-  let pendingCopy   = '';
-
-  // Search state
-  let searchMatches  = [];
-  let searchMatchIdx = -1;
-  let searchTerm     = '';
-  let searchDebounce = null;
-  let pageTextCache  = {};
-
-  // ── Menu ──
-  let menuOpen = false;
-  function toggleMenu() {
-    menuOpen = !menuOpen;
-    document.getElementById('action-menu').classList.toggle('open', menuOpen);
-    document.getElementById('menu-btn').classList.toggle('open', menuOpen);
-  }
-  function closeMenu() {
-    menuOpen = false;
-    document.getElementById('action-menu').classList.remove('open');
-    document.getElementById('menu-btn').classList.remove('open');
-  }
-  function menuAction(action) {
-    closeMenu();
-    if (action === 'search')   { toggleSearch(); }
-    if (action === 'copy')     { toggleCopyMode(); }
-    if (action === 'edit')     { openEditOverlay(); }
-    if (action === 'download') { downloadCurrent(); }
-  }
-  // Update menu item active states
-  function updateMenuState() {
-    document.getElementById('mi-search').classList.toggle('on',
-      document.getElementById('search-bar').classList.contains('open'));
-    document.getElementById('mi-copy').classList.toggle('on', copyModeOn);
-  }
-  // Close menu when tapping outside
-  document.addEventListener('click', e => {
-    const menu = document.getElementById('action-menu');
-    const btn  = document.getElementById('menu-btn');
-    if (menuOpen && !menu.contains(e.target) && !btn.contains(e.target)) closeMenu();
-  });
-
-  // ── File input ──
-  document.getElementById('file-input').addEventListener('change', async (e) => {
-    const selected = Array.from(e.target.files);
-    e.target.value = '';
-    for (const f of selected) {
-      if (f.type !== 'application/pdf' && !f.name.endsWith('.pdf')) { toast('⚠ Apenas PDFs'); continue; }
-      const buf = await f.arrayBuffer();
-      const url = URL.createObjectURL(new Blob([buf], {type:'application/pdf'}));
-      if (files.find(x => x.name === f.name && x.size === f.size)) { toast('Já adicionado'); continue; }
-      files.push({ name: f.name, size: f.size, buf, url });
-      toast('✓ ' + f.name);
-    }
-    renderLibrary();
-  });
-
-  // ── Library ──
-  function renderLibrary() {
-    const list = document.getElementById('file-list');
-    const empty = document.getElementById('empty-state');
-    list.innerHTML = '';
-    if (!files.length) { empty.style.display = 'block'; return; }
-    empty.style.display = 'none';
-    files.forEach((f, i) => {
-      const card = document.createElement('div');
-      card.className = 'file-card';
-      card.innerHTML = `
-        <div class="file-icon">📄</div>
-        <div class="file-info">
-          <div class="file-name">${escHtml(f.name)}</div>
-          <div class="file-meta">${formatSize(f.size)}</div>
+    <!-- Header with 3D Design -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="logo-3d">
+                <div class="logo-icon">📄</div>
+                <div>
+                    <div class="logo-text">PDF·Leitor</div>
+                    <div class="app-title">Leitor e gerenciador de arquivos PDF</div>
+                </div>
+            </div>
         </div>
-        <div class="file-actions" onclick="event.stopPropagation()">
-          <button class="icon-btn" title="Baixar" onclick="downloadFile(${i})">⬇</button>
-          <button class="icon-btn del" title="Remover" onclick="removeFile(${i})">✕</button>
-        </div>`;
-      card.addEventListener('click', () => openReader(i));
-      list.appendChild(card);
-    });
-  }
+    </header>
 
-  function removeFile(i) {
-    URL.revokeObjectURL(files[i].url);
-    files.splice(i, 1);
-    renderLibrary();
-    toast('Arquivo removido');
-  }
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-group">
+                <input type="file" id="file-input" accept=".pdf">
+                <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+                    <span>📂</span> Abrir PDF
+                </button>
+            </div>
 
-  // ── Reader ──
-  async function openReader(i) {
-    currentFile = files[i]; currentPage = 1; zoom = 1.0;
-    pageTextCache = {}; clearSearch(); copyModeOn = false;
-    document.getElementById('reader-title').textContent = currentFile.name;
-    document.getElementById('reader-overlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-    await loadPDF();
-  }
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="search-input" placeholder="Pesquisar no documento... (Ctrl+F)">
+                <div class="search-results" id="search-results"></div>
+            </div>
 
-  function closeReader() {
-    document.getElementById('reader-overlay').classList.remove('open');
-    document.body.style.overflow = '';
-    if (pdfDoc) { pdfDoc.destroy(); pdfDoc = null; }
-    setCopyMode(false);
-    clearSearch();
-    document.getElementById('search-bar').classList.remove('open');
-    document.getElementById('search-toggle-btn').classList.remove('active');
-  }
+            <div class="toolbar-group">
+                <button class="btn btn-secondary btn-icon" id="copy-text-btn" title="Copiar texto">
+                    📋
+                </button>
+                <button class="btn btn-secondary btn-icon" id="extract-text-btn" title="Extrair texto">
+                    ✏️
+                </button>
+                <button class="btn btn-secondary btn-icon" id="download-btn" title="Baixar PDF">
+                    ⬇
+                </button>
+            </div>
+        </div>
 
-  async function loadPDF() {
-    showSpinner(true); setProgress(0);
-    try {
-      const task = pdfjsLib.getDocument({ data: currentFile.buf.slice(0) });
-      task.onProgress = ({ loaded, total }) => { if (total) setProgress(Math.round(loaded/total*100)); };
-      pdfDoc = await task.promise;
-      setProgress(100);
-      await autoFitZoom();
-      updatePageInfo();
-      await renderPage();
-    } catch(e) {
-      toast('Erro ao abrir: ' + e.message); closeReader();
-    } finally { showSpinner(false); }
-  }
+        <!-- Annotation Toolbar -->
+        <div class="toolbar annotation-toolbar" style="display: none;" id="annotation-toolbar">
+            <div class="tool-group">
+                <button class="tool-btn active" data-tool="select">Selecionar</button>
+                <button class="tool-btn" data-tool="highlight">Realçar</button>
+                <button class="tool-btn" data-tool="underline">Sublinhar</button>
+                <button class="tool-btn" data-tool="strike">Riscar</button>
+            </div>
+            <div class="tool-group">
+                <input type="color" class="color-picker" id="annotation-color" value="#fbbf24" title="Cor">
+                <input type="range" id="annotation-size" min="1" max="10" value="3" title="Tamanho">
+            </div>
+            <div class="tool-group">
+                <button class="btn btn-secondary" id="save-annotations">💾 Salvar</button>
+            </div>
+        </div>
 
-  async function autoFitZoom() {
-    const container = document.getElementById('canvas-container');
-    const availW    = container.clientWidth - 24;
-    const page      = await pdfDoc.getPage(1);
-    const baseVp    = page.getViewport({ scale: 1 });
-    zoom = Math.max(0.3, availW / baseVp.width);
-  }
+        <!-- Viewer Container -->
+        <div class="viewer-container">
+            <!-- Empty State -->
+            <div class="empty-state" id="empty-state">
+                <div class="empty-icon">📂</div>
+                <div class="empty-title">Nenhum PDF aberto</div>
+                <p>Toque em <strong>+ Abrir PDF</strong> para carregar arquivos do seu dispositivo.</p>
+            </div>
 
-  async function renderPage() {
-    if (!pdfDoc) return;
-    if (renderTask) { renderTask.cancel(); renderTask = null; }
-    const canvas  = document.getElementById('pdf-canvas');
-    const ctx     = canvas.getContext('2d');
-    const page    = await pdfDoc.getPage(currentPage);
-    const dpr     = Math.min(window.devicePixelRatio || 1, 3);
-    const vp      = page.getViewport({ scale: zoom });
-    const vpHD    = page.getViewport({ scale: zoom * dpr });
-    canvas.width  = vpHD.width;  canvas.height  = vpHD.height;
-    canvas.style.width = vp.width + 'px'; canvas.style.height = vp.height + 'px';
-    const wrapper = document.getElementById('canvas-wrapper');
-    wrapper.style.width = vp.width + 'px'; wrapper.style.height = vp.height + 'px';
-    renderTask = page.render({ canvasContext: ctx, viewport: vpHD });
-    try { await renderTask.promise; } catch(e) { /* cancelled */ }
-    updatePageInfo();
-    document.getElementById('canvas-container').scrollTop = 0;
-    if (searchTerm) await buildHighlights(page, vp);
-    else clearTextLayer();
-    if (copyModeOn) await buildSelectLayer(page, vp);
-    else clearSelectLayer();
-  }
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Carregando PDF…</p>
+            </div>
 
-  function changePage(delta) {
-    if (!pdfDoc) return;
-    const n = currentPage + delta;
-    if (n < 1 || n > pdfDoc.numPages) return;
-    currentPage = n; renderPage();
-  }
+            <!-- PDF Wrapper -->
+            <div class="pdf-wrapper" id="pdf-wrapper">
+                <!-- Page Navigation -->
+                <div class="page-nav">
+                    <button class="btn btn-secondary btn-icon" id="prev-page">‹</button>
+                    <button class="btn btn-secondary btn-icon" id="next-page">›</button>
+                    <div class="page-info">
+                        <span id="current-page">1</span> / <span id="total-pages">—</span>
+                    </div>
+                </div>
 
-  function changeZoom(delta) {
-    zoom = Math.max(0.3, Math.min(4, zoom + delta));
-    document.getElementById('zoom-label').textContent = Math.round(zoom * 100) + '%';
-    renderPage();
-  }
+                <!-- Page Container -->
+                <div class="page-container" id="page-container">
+                    <canvas id="pdf-canvas"></canvas>
+                    <div class="text-layer" id="text-layer"></div>
+                </div>
 
-  function updatePageInfo() {
-    if (!pdfDoc) return;
-    document.getElementById('page-info').textContent = `Página ${currentPage} / ${pdfDoc.numPages}`;
-    document.getElementById('prev-btn').disabled = currentPage <= 1;
-    document.getElementById('next-btn').disabled = currentPage >= pdfDoc.numPages;
-    document.getElementById('zoom-label').textContent = Math.round(zoom * 100) + '%';
-  }
+                <!-- Zoom Controls -->
+                <div class="zoom-controls">
+                    <button class="btn btn-secondary btn-icon" id="zoom-out">−</button>
+                    <span class="zoom-value" id="zoom-value">100%</span>
+                    <button class="btn btn-secondary btn-icon" id="zoom-in">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  // ══════════════════════════════════════════════
-  // ── MODO CÓPIA (selecionar texto no PDF) ──
-  // ══════════════════════════════════════════════
-  function toggleCopyMode() {
-    setCopyMode(!copyModeOn);
-  }
+    <!-- Text Extraction Modal -->
+    <div class="modal" id="extract-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">✏️ Texto extraído — Página <span id="extract-page-num">1</span></h2>
+                <button class="modal-close" onclick="closeExtractModal()">✕</button>
+            </div>
+            <textarea class="text-area" id="extracted-text" readonly></textarea>
+            <div class="toolbar-group">
+                <button class="btn btn-primary" onclick="copyExtractedText()">📋 Copiar tudo</button>
+                <button class="btn btn-secondary" onclick="downloadExtractedText()">💾 Salvar .txt</button>
+            </div>
+        </div>
+    </div>
 
-  function setCopyMode(on) {
-    copyModeOn = on;
-    const btn  = document.getElementById('copy-toggle-btn');
-    const hint = document.getElementById('mode-hint');
-    btn.classList.toggle('copy-mode', on);
-    hint.classList.toggle('show', on);
-    updateMenuState();
-    if (on) {
-      // rebuild select layer for current page
-      if (pdfDoc) pdfDoc.getPage(currentPage).then(page => {
-        const vp = page.getViewport({ scale: zoom });
-        buildSelectLayer(page, vp);
-      });
-      toast('📋 Selecione o texto com o dedo');
-    } else {
-      clearSelectLayer();
-      dismissCopyPopup();
-    }
-  }
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-icon">✓</span>
+        <span id="toast-message">Operação realizada com sucesso!</span>
+    </div>
 
-  // Build transparent selectable text spans over the canvas
-  async function buildSelectLayer(page, vp) {
-    const layer = document.getElementById('select-layer');
-    layer.innerHTML = '';
-    layer.style.width  = vp.width  + 'px';
-    layer.style.height = vp.height + 'px';
-    layer.classList.add('active');
+    <script>
+        // PDF.js configuration
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    const tc = await page.getTextContent();
-    tc.items.forEach(item => {
-      if (!item.str.trim()) return;
-      const tx = pdfjsLib.Util.transform(vp.transform, item.transform);
-      const x  = tx[4];
-      const y  = tx[5];
-      const h  = Math.abs(tx[3]) || 12;
-      const w  = item.width * zoom;
-      // angle
-      const angle = Math.atan2(tx[1], tx[0]) * 180 / Math.PI;
+        // State
+        let pdfDoc = null;
+        let currentPage = 1;
+        let scale = 1.5;
+        let totalAnnotations = [];
+        let currentTool = 'select';
+        let selectedText = '';
 
-      const span = document.createElement('span');
-      span.textContent = item.str;
-      span.style.cssText = `
-        left: ${x}px; top: ${(y - h)}px;
-        font-size: ${h * 0.95}px;
-        width: ${w}px; height: ${h}px;
-        transform: rotate(${angle}deg);
-      `;
-      layer.appendChild(span);
-    });
+        // Elements
+        const fileInput = document.getElementById('file-input');
+        const emptyState = document.getElementById('empty-state');
+        const loading = document.getElementById('loading');
+        const pdfWrapper = document.getElementById('pdf-wrapper');
+        const canvas = document.getElementById('pdf-canvas');
+        const ctx = canvas.getContext('2d');
+        const textLayer = document.getElementById('text-layer');
+        const annotationToolbar = document.getElementById('annotation-toolbar');
 
-    // Listen for text selection events
-    layer.onmouseup  = handleSelectionEnd;
-    layer.ontouchend = handleSelectionEnd;
-  }
+        // File Input Handler
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                await loadPDF(file);
+            }
+        });
 
-  function handleSelectionEnd() {
-    setTimeout(() => {
-      const sel = window.getSelection();
-      if (!sel || sel.isCollapsed) return;
-      const text = sel.toString().trim();
-      if (!text) return;
-      pendingCopy = text;
-      showCopyPopup(text);
-    }, 80);
-  }
-
-  function showCopyPopup(text) {
-    const popup  = document.getElementById('copy-popup');
-    const label  = document.getElementById('copy-popup-text');
-    label.textContent = text.length > 80 ? text.slice(0, 77) + '…' : text;
-    // Position near center-bottom of screen
-    popup.style.left   = '50%';
-    popup.style.top    = '50%';
-    popup.style.transform = 'translate(-50%, -50%)';
-    popup.classList.add('show');
-  }
-
-  async function confirmCopy() {
-    if (!pendingCopy) return;
-    try {
-      await navigator.clipboard.writeText(pendingCopy);
-      toast('✓ Texto copiado!');
-    } catch {
-      // fallback for mobile without clipboard API permission
-      const ta = document.createElement('textarea');
-      ta.value = pendingCopy; ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.select(); document.execCommand('copy');
-      document.body.removeChild(ta);
-      toast('✓ Texto copiado!');
-    }
-    dismissCopyPopup();
-    window.getSelection()?.removeAllRanges();
-  }
-
-  function dismissCopyPopup() {
-    document.getElementById('copy-popup').classList.remove('show');
-    pendingCopy = '';
-    window.getSelection()?.removeAllRanges();
-  }
-
-  function clearSelectLayer() {
-    const layer = document.getElementById('select-layer');
-    layer.innerHTML = ''; layer.classList.remove('active');
-    layer.onmouseup = null; layer.ontouchend = null;
-  }
-
-  // ══════════════════════════════════════════════
-  // ── MODO EDIÇÃO (texto extraído + editável) ──
-  // ══════════════════════════════════════════════
-  async function openEditOverlay() {
-    if (!pdfDoc) { toast('Abra um PDF primeiro'); return; }
-    const overlay = document.getElementById('edit-overlay');
-    const ta      = document.getElementById('edit-textarea');
-    const info    = document.getElementById('edit-info');
-    const label   = document.getElementById('edit-page-label');
-    overlay.classList.add('open');
-    ta.value = 'Extraindo texto…';
-    label.textContent = currentPage;
-
-    // Extract text from current page
-    const page = await pdfDoc.getPage(currentPage);
-    const tc   = await page.getTextContent();
-    let text = '';
-    let lastY = null;
-    tc.items.forEach(item => {
-      if (!item.str) return;
-      const y = Math.round(item.transform[5]);
-      if (lastY !== null && Math.abs(y - lastY) > 4) text += '\n';
-      text += item.str;
-      lastY = y;
-    });
-    ta.value = text.trim();
-    const chars = ta.value.length;
-    const words = ta.value.split(/\s+/).filter(Boolean).length;
-    info.textContent = `${chars} caracteres · ${words} palavras · pág. ${currentPage}`;
-
-    // Update info on edit
-    ta.oninput = () => {
-      const c = ta.value.length;
-      const w = ta.value.split(/\s+/).filter(Boolean).length;
-      info.textContent = `${c} caracteres · ${w} palavras · pág. ${currentPage}`;
-    };
-  }
-
-  function closeEditOverlay() {
-    document.getElementById('edit-overlay').classList.remove('open');
-  }
-
-  async function editCopyAll() {
-    const text = document.getElementById('edit-textarea').value;
-    if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      toast('✓ Todo o texto copiado!');
-    } catch {
-      const ta2 = document.createElement('textarea');
-      ta2.value = text; ta2.style.position = 'fixed'; ta2.style.opacity = '0';
-      document.body.appendChild(ta2); ta2.select(); document.execCommand('copy');
-      document.body.removeChild(ta2);
-      toast('✓ Todo o texto copiado!');
-    }
-  }
-
-  function editSave() {
-    const text = document.getElementById('edit-textarea').value;
-    if (!text) return;
-    const name  = (currentFile?.name || 'documento').replace(/\.pdf$/i, '') + `_pag${currentPage}.txt`;
-    const blob  = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url   = URL.createObjectURL(blob);
-    const a     = document.createElement('a');
-    a.href = url; a.download = name;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast('💾 Salvo como ' + name);
-  }
-
-  // ══════════════════════════════════════════════
-  // ── PESQUISA ──
-  // ══════════════════════════════════════════════
-  function toggleSearch() {
-    const bar = document.getElementById('search-bar');
-    const btn = document.getElementById('search-toggle-btn');
-    const open = bar.classList.toggle('open');
-    btn.classList.toggle('active', open);
-    updateMenuState();
-    if (open) { setTimeout(() => document.getElementById('search-input').focus(), 80); }
-    else { clearSearch(); renderPage(); }
-  }
-
-  function onSearchInput() {
-    clearTimeout(searchDebounce);
-    searchDebounce = setTimeout(runSearch, 300);
-  }
-
-  function onSearchKey(e) {
-    if (e.key === 'Enter')  navigateMatch(e.shiftKey ? -1 : 1);
-    if (e.key === 'Escape') toggleSearch();
-  }
-
-  async function runSearch() {
-    const term = document.getElementById('search-input').value.trim().toLowerCase();
-    searchTerm = term; searchMatches = []; searchMatchIdx = -1;
-    if (!pdfDoc || term.length < 2) {
-      document.getElementById('search-count').textContent = '—';
-      document.getElementById('srch-prev').disabled = true;
-      document.getElementById('srch-next').disabled = true;
-      clearTextLayer(); return;
-    }
-    for (let p = 1; p <= pdfDoc.numPages; p++) {
-      const items = await getPageText(p);
-      const pm = [];
-      for (const item of items) {
-        const t = item.str.toLowerCase(); let idx = 0;
-        while ((idx = t.indexOf(term, idx)) !== -1) { pm.push({ item, charStart:idx, charEnd:idx+term.length }); idx++; }
-      }
-      if (pm.length) searchMatches.push({ page:p, matches:pm });
-    }
-    const total = searchMatches.reduce((s,m) => s + m.matches.length, 0);
-    document.getElementById('search-count').textContent = total ? `1/${total}` : '0';
-    document.getElementById('srch-prev').disabled = total === 0;
-    document.getElementById('srch-next').disabled = total === 0;
-    if (total) { searchMatchIdx = 0; await jumpToMatch(0); }
-    else { toast('Nenhum resultado'); clearTextLayer(); }
-  }
-
-  async function navigateMatch(dir) {
-    if (!searchMatches.length) return;
-    const total = searchMatches.reduce((s,m) => s + m.matches.length, 0);
-    searchMatchIdx = (searchMatchIdx + dir + total) % total;
-    document.getElementById('search-count').textContent = `${searchMatchIdx+1}/${total}`;
-    await jumpToMatch(searchMatchIdx);
-  }
-
-  async function jumpToMatch(globalIdx) {
-    let count = 0;
-    for (const pg of searchMatches) {
-      for (let m = 0; m < pg.matches.length; m++) {
-        if (count === globalIdx) {
-          if (currentPage !== pg.page) { currentPage = pg.page; await renderPage(); }
-          else {
-            const page = await pdfDoc.getPage(currentPage);
-            const vp   = page.getViewport({ scale: zoom });
-            await buildHighlights(page, vp, count);
-          }
-          return;
+        // Load PDF
+        async function loadPDF(file) {
+            showLoading();
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                
+                emptyState.style.display = 'none';
+                pdfWrapper.classList.add('active');
+                annotationToolbar.style.display = 'flex';
+                
+                document.getElementById('total-pages').textContent = pdfDoc.numPages;
+                
+                await renderPage(currentPage);
+                hideLoading();
+                showToast('PDF carregado com sucesso!');
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                showToast('Erro ao carregar PDF', 'error');
+                hideLoading();
+            }
         }
-        count++;
-      }
-    }
-  }
 
-  async function buildHighlights(page, vp, activeGlobal) {
-    clearTextLayer();
-    if (!searchTerm || !searchMatches.length) return;
-    const layer = document.getElementById('text-layer');
-    layer.style.width = vp.width + 'px'; layer.style.height = vp.height + 'px';
-    const pgData = searchMatches.find(x => x.page === currentPage);
-    if (!pgData) return;
-    let globalOffset = 0;
-    for (const pg of searchMatches) { if (pg.page === currentPage) break; globalOffset += pg.matches.length; }
-    pgData.matches.forEach((m, li) => {
-      const gi   = globalOffset + li;
-      const item = m.item;
-      const tx   = pdfjsLib.Util.transform(vp.transform, item.transform);
-      const x=tx[4], y=tx[5], h=Math.abs(tx[3])||10;
-      const charW  = item.width * zoom / (item.str.length || 1);
-      const startX = x + m.charStart * charW;
-      const matchW = (m.charEnd - m.charStart) * charW;
-      const el = document.createElement('div');
-      el.className = 'highlight' + (gi === activeGlobal ? ' active' : '');
-      el.style.cssText = `left:${startX}px;top:${y-h}px;width:${matchW}px;height:${h}px;`;
-      layer.appendChild(el);
-      if (gi === activeGlobal) {
-        setTimeout(() => {
-          const cont = document.getElementById('canvas-container');
-          const r = el.getBoundingClientRect(), cr = cont.getBoundingClientRect();
-          if (r.top < cr.top || r.bottom > cr.bottom) el.scrollIntoView({ block:'center', behavior:'smooth' });
-        }, 100);
-      }
-    });
-  }
+        // Render Page
+        async function renderPage(num) {
+            if (!pdfDoc) return;
 
-  async function getPageText(pageNum) {
-    if (pageTextCache[pageNum]) return pageTextCache[pageNum];
-    const page = await pdfDoc.getPage(pageNum);
-    const tc   = await page.getTextContent();
-    pageTextCache[pageNum] = tc.items.filter(i => i.str);
-    return pageTextCache[pageNum];
-  }
+            const page = await pdfDoc.getPage(num);
+            const viewport = page.getViewport({ scale });
 
-  function clearTextLayer() { document.getElementById('text-layer').innerHTML = ''; }
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
 
-  function clearSearch() {
-    searchMatches = []; searchMatchIdx = -1; searchTerm = '';
-    document.getElementById('search-input').value = '';
-    document.getElementById('search-count').textContent = '—';
-    document.getElementById('srch-prev').disabled = true;
-    document.getElementById('srch-next').disabled = true;
-    clearTextLayer();
-  }
+            await page.render({
+                canvasContext: ctx,
+                viewport: viewport
+            }).promise;
 
-  // ── Download ──
-  function downloadFile(i)  { triggerDownload(files[i].url, files[i].name); toast('⬇ Baixando ' + files[i].name); }
-  function downloadCurrent() { if (!currentFile) return; triggerDownload(currentFile.url, currentFile.name); toast('⬇ Baixando ' + currentFile.name); }
-  function triggerDownload(url, name) { const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+            // Render text layer
+            await renderTextLayer(page, viewport);
 
-  // ── Swipe ──
-  let touchX=0, touchY=0;
-  document.getElementById('canvas-container').addEventListener('touchstart', e => { touchX=e.touches[0].clientX; touchY=e.touches[0].clientY; }, { passive:true });
-  document.getElementById('canvas-container').addEventListener('touchend', e => {
-    if (copyModeOn) return;
-    const dx=e.changedTouches[0].clientX-touchX, dy=e.changedTouches[0].clientY-touchY;
-    if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy)) changePage(dx<0?1:-1);
-  }, { passive:true });
+            document.getElementById('current-page').textContent = num;
+            currentPage = num;
 
-  // ── Keyboard ──
-  document.addEventListener('keydown', e => {
-    if (!pdfDoc) return;
-    if (document.activeElement === document.getElementById('search-input')) return;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changePage(1);
-    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   changePage(-1);
-    if (e.key === 'Escape') { closeEditOverlay(); closeReader(); }
-    if ((e.ctrlKey||e.metaKey) && e.key==='f') { e.preventDefault(); toggleSearch(); }
-  });
+            // Render annotations
+            renderAnnotations();
+        }
 
-  // Click outside copy popup to dismiss
-  document.addEventListener('click', e => {
-    const popup = document.getElementById('copy-popup');
-    if (popup.classList.contains('show') && !popup.contains(e.target)) dismissCopyPopup();
-  });
+        // Render Text Layer
+        async function renderTextLayer(page, viewport) {
+            const textContent = await page.getTextContent();
+            textLayer.innerHTML = '';
+            
+            const textDivs = [];
+            
+            textContent.items.forEach(item => {
+                const textDiv = document.createElement('div');
+                textDiv.className = 'text-item';
+                textDiv.style.position = 'absolute';
+                textDiv.style.left = `${item.transform[4]}px`;
+                textDiv.style.top = `${item.transform[5]}px`;
+                textDiv.style.fontSize = `${item.transform[0]}px`;
+                textDiv.style.transform = `rotate(${Math.atan2(item.transform[2], item.transform[0]) * 180 / Math.PI}deg)`;
+                textDiv.textContent = item.str;
+                textLayer.appendChild(textDiv);
+                textDivs.push(textDiv);
+            });
 
-  // ── Helpers ──
-  function showSpinner(v) {
-    document.getElementById('loading-spinner').classList.toggle('show', v);
-    document.getElementById('canvas-wrapper').style.display = v ? 'none' : 'inline-block';
-  }
-  function setProgress(pct) { document.getElementById('progress-bar').style.width = pct + '%'; }
-  let toastTimer;
-  function toast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg; el.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
-  }
-  function formatSize(b) {
-    if (b < 1024) return b + ' B';
-    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
-    return (b/1048576).toFixed(1) + ' MB';
-  }
-  function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+            // Scale text layer
+            textLayer.style.width = `${viewport.width}px`;
+            textLayer.style.height = `${viewport.height}px`;
+        }
 
-  // ── PWA ──
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+        // Search Functionality
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
 
-  renderLibrary();
-</script>
+        searchInput.addEventListener('input', debounce(async (e) => {
+            const query = e.target.value.trim();
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            await performSearch(query);
+        }, 300));
+
+        async function performSearch(query) {
+            if (!pdfDoc) return;
+
+            const results = [];
+            
+            for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                const page = await pdfDoc.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                
+                const regex = new RegExp(query, 'gi');
+                let match;
+                
+                while ((match = regex.exec(pageText)) !== null) {
+                    results.push({
+                        page: pageNum,
+                        text: pageText.substring(Math.max(0, match.index - 50), match.index + query.length + 50),
+                        index: match.index
+                    });
+                    
+                    if (results.length >= 10) break;
+                }
+                
+                if (results.length >= 10) break;
+            }
+
+            displaySearchResults(results, query);
+        }
+
+        function displaySearchResults(results, query) {
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div class="search-result-item">Nenhum resultado encontrado</div>';
+                searchResults.style.display = 'block';
+                return;
+            }
+
+            searchResults.innerHTML = results.map((result, index) => `
+                <div class="search-result-item" onclick="goToPage(${result.page})">
+                    <strong>Página ${result.page}</strong><br>
+                    <small>...${highlightText(result.text, query)}...</small>
+                </div>
+            `).join('');
+            
+            searchResults.style.display = 'block';
+        }
+
+        function highlightText(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+        }
+
+        function goToPage(pageNum) {
+            currentPage = pageNum;
+            renderPage(pageNum);
+            searchResults.style.display = 'none';
+            searchInput.value = '';
+        }
+
+        // Text Selection and Copy
+        let isSelecting = false;
+
+        canvas.addEventListener('mousedown', () => {
+            isSelecting = true;
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isSelecting = false;
+            handleTextSelection();
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isSelecting = false;
+        });
+
+        async function handleTextSelection() {
+            const selection = window.getSelection();
+            selectedText = selection.toString().trim();
+            
+            if (selectedText) {
+                document.getElementById('copy-text-btn').style.opacity = '1';
+            }
+        }
+
+        document.getElementById('copy-text-btn').addEventListener('click', () => {
+            if (selectedText) {
+                navigator.clipboard.writeText(selectedText);
+                showToast('Texto copiado!');
+            } else {
+                showToast('Selecione um texto primeiro', 'warning');
+            }
+        });
+
+        // Extract Text
+        document.getElementById('extract-text-btn').addEventListener('click', async () => {
+            if (!pdfDoc) {
+                showToast('Abra um PDF primeiro', 'warning');
+                return;
+            }
+
+            const page = await pdfDoc.getPage(currentPage);
+            const textContent = await page.getTextContent();
+            const text = textContent.items.map(item => item.str).join(' ');
+
+            document.getElementById('extracted-text').value = text;
+            document.getElementById('extract-page-num').textContent = currentPage;
+            document.getElementById('extract-modal').classList.add('active');
+        });
+
+        function closeExtractModal() {
+            document.getElementById('extract-modal').classList.remove('active');
+        }
+
+        function copyExtractedText() {
+            const text = document.getElementById('extracted-text').value;
+            navigator.clipboard.writeText(text);
+            showToast('Texto copiado!');
+        }
+
+        function downloadExtractedText() {
+            const text = document.getElementById('extracted-text').value;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pagina-${currentPage}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Arquivo salvo!');
+        }
+
+        // Page Navigation
+        document.getElementById('prev-page').addEventListener('click', () => {
+            if (currentPage > 1) {
+                renderPage(currentPage - 1);
+            }
+        });
+
+        document.getElementById('next-page').addEventListener('click', () => {
+            if (pdfDoc && currentPage < pdfDoc.numPages) {
+                renderPage(currentPage + 1);
+            }
+        });
+
+        // Zoom Controls
+        document.getElementById('zoom-in').addEventListener('click', () => {
+            scale += 0.25;
+            updateZoom();
+        });
+
+        document.getElementById('zoom-out').addEventListener('click', () => {
+            if (scale > 0.5) {
+                scale -= 0.25;
+                updateZoom();
+            }
+        });
+
+        function updateZoom() {
+            document.getElementById('zoom-value').textContent = `${Math.round(scale * 100)}%`;
+            renderPage(currentPage);
+        }
+
+        // Annotation Tools
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTool = btn.dataset.tool;
+            });
+        });
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'f') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+            }
+        });
+
+        // Utility Functions
+        function showLoading() {
+            loading.classList.add('active');
+            emptyState.style.display = 'none';
+            pdfWrapper.classList.remove('active');
+        }
+
+        function hideLoading() {
+            loading.classList.remove('active');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function renderAnnotations() {
+            // Implementation for rendering annotations
+            // This would draw saved annotations on the canvas
+        }
+
+        // Close search results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-container')) {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Service Worker registrado'))
+                .catch(err => console.log('Erro no Service Worker:', err));
+        }
+    </script>
 </body>
 </html>
