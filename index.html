@@ -86,32 +86,53 @@
     /* ── Reader header ── */
     #reader-header {
       background: rgba(15,14,23,.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border); padding: 10px 12px;
-      display: flex; align-items: center; gap: 7px; flex-shrink: 0;
+      border-bottom: 1px solid var(--border); padding: 9px 12px;
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+      position: relative; min-width: 0;
     }
-    #back-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all .2s; flex-shrink: 0; }
+    #back-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all .2s; flex-shrink: 0; }
     #back-btn:active { transform: scale(.9); }
-    #reader-title { flex: 1; font-size: .82rem; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    #reader-title { flex: 1; font-size: .78rem; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0; }
 
-    /* header icon buttons */
-    .hdr-btn {
-      background: var(--card); border: 1px solid var(--border); color: var(--muted);
-      width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; font-size: 1rem;
+    /* ── Menu button (⋯) ── */
+    #menu-btn {
+      background: var(--card); border: 1px solid var(--border); color: var(--text);
+      width: 34px; height: 34px; border-radius: 10px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
       transition: all .2s; flex-shrink: 0;
     }
-    .hdr-btn:active { transform: scale(.9); }
-    .hdr-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(255,107,53,.12); }
-    .hdr-btn.copy-mode { color: var(--info); border-color: var(--info); background: rgba(127,90,240,.12); }
-    .hdr-btn.edit-mode { color: var(--success); border-color: var(--success); background: rgba(44,182,125,.12); }
+    #menu-btn:active { transform: scale(.9); }
+    #menu-btn.open { color: var(--accent); border-color: var(--accent); }
 
-    #download-btn {
-      background: var(--success); border: none; color: #fff;
-      font-family: 'DM Sans', sans-serif; font-size: .78rem; font-weight: 600;
-      padding: 8px 11px; border-radius: 8px; cursor: pointer;
-      display: flex; align-items: center; gap: 4px; transition: opacity .2s, transform .15s; flex-shrink: 0;
+    /* ── Dropdown action menu ── */
+    #action-menu {
+      display: none; position: absolute; top: 52px; right: 10px; z-index: 400;
+      background: rgba(22,21,40,0.98); border: 1px solid var(--border);
+      border-radius: 14px; padding: 6px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.8);
+      min-width: 210px;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      animation: popIn .18s ease;
     }
-    #download-btn:active { transform: scale(.95); opacity: .85; }
+    #action-menu.open { display: block; }
+    .menu-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px; border-radius: 10px; cursor: pointer;
+      font-size: .88rem; font-weight: 500; color: var(--text);
+      transition: background .15s; border: none; background: none;
+      width: 100%; text-align: left; font-family: 'DM Sans', sans-serif;
+    }
+    .menu-item:active { background: var(--card); }
+    .menu-item .mi-icon { font-size: 1.05rem; width: 22px; text-align: center; flex-shrink: 0; }
+    .menu-item .mi-label { flex: 1; }
+    .menu-item .mi-badge { font-size: .65rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; flex-shrink: 0; }
+    .menu-item.on { background: rgba(255,255,255,.04); }
+    .menu-item.on .mi-badge { background: rgba(255,107,53,.25); color: var(--accent); }
+    .menu-divider { height: 1px; background: var(--border); margin: 4px 8px; }
+
+    /* hdr-btn kept for compat but unused */
+    .hdr-btn { display: none; }
+    #download-btn { display: none; }
 
     /* ── Page bar ── */
     #page-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 7px 12px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -290,13 +311,31 @@
   <div id="reader-header">
     <button id="back-btn" onclick="closeReader()">←</button>
     <div id="reader-title">—</div>
-    <!-- 🔍 Pesquisar -->
-    <button class="hdr-btn" id="search-toggle-btn" title="Pesquisar (Ctrl+F)" onclick="toggleSearch()">🔍</button>
-    <!-- 📋 Copiar texto -->
-    <button class="hdr-btn" id="copy-toggle-btn"   title="Selecionar e copiar texto" onclick="toggleCopyMode()">📋</button>
-    <!-- ✏️ Editar texto extraído -->
-    <button class="hdr-btn" id="edit-toggle-btn"   title="Editar texto do PDF" onclick="openEditOverlay()">✏️</button>
-    <button id="download-btn" onclick="downloadCurrent()">⬇ Baixar</button>
+    <button id="menu-btn" onclick="toggleMenu()" title="Opções">⋯</button>
+
+    <!-- Dropdown menu -->
+    <div id="action-menu">
+      <button class="menu-item" id="mi-search" onclick="menuAction('search')">
+        <span class="mi-icon">🔍</span>
+        <span class="mi-label">Pesquisar</span>
+        <span class="mi-badge">Ctrl+F</span>
+      </button>
+      <button class="menu-item" id="mi-copy" onclick="menuAction('copy')">
+        <span class="mi-icon">📋</span>
+        <span class="mi-label">Copiar texto</span>
+        <span class="mi-badge">Selecionar</span>
+      </button>
+      <button class="menu-item" id="mi-edit" onclick="menuAction('edit')">
+        <span class="mi-icon">✏️</span>
+        <span class="mi-label">Editar / Extrair</span>
+        <span class="mi-badge">Página atual</span>
+      </button>
+      <div class="menu-divider"></div>
+      <button class="menu-item" onclick="menuAction('download')">
+        <span class="mi-icon">⬇</span>
+        <span class="mi-label">Baixar PDF</span>
+      </button>
+    </div>
   </div>
   <div id="progress-bar"></div>
 
@@ -383,6 +422,38 @@
   let searchTerm     = '';
   let searchDebounce = null;
   let pageTextCache  = {};
+
+  // ── Menu ──
+  let menuOpen = false;
+  function toggleMenu() {
+    menuOpen = !menuOpen;
+    document.getElementById('action-menu').classList.toggle('open', menuOpen);
+    document.getElementById('menu-btn').classList.toggle('open', menuOpen);
+  }
+  function closeMenu() {
+    menuOpen = false;
+    document.getElementById('action-menu').classList.remove('open');
+    document.getElementById('menu-btn').classList.remove('open');
+  }
+  function menuAction(action) {
+    closeMenu();
+    if (action === 'search')   { toggleSearch(); }
+    if (action === 'copy')     { toggleCopyMode(); }
+    if (action === 'edit')     { openEditOverlay(); }
+    if (action === 'download') { downloadCurrent(); }
+  }
+  // Update menu item active states
+  function updateMenuState() {
+    document.getElementById('mi-search').classList.toggle('on',
+      document.getElementById('search-bar').classList.contains('open'));
+    document.getElementById('mi-copy').classList.toggle('on', copyModeOn);
+  }
+  // Close menu when tapping outside
+  document.addEventListener('click', e => {
+    const menu = document.getElementById('action-menu');
+    const btn  = document.getElementById('menu-btn');
+    if (menuOpen && !menu.contains(e.target) && !btn.contains(e.target)) closeMenu();
+  });
 
   // ── File input ──
   document.getElementById('file-input').addEventListener('change', async (e) => {
@@ -531,6 +602,7 @@
     const hint = document.getElementById('mode-hint');
     btn.classList.toggle('copy-mode', on);
     hint.classList.toggle('show', on);
+    updateMenuState();
     if (on) {
       // rebuild select layer for current page
       if (pdfDoc) pdfDoc.getPage(currentPage).then(page => {
@@ -708,6 +780,7 @@
     const btn = document.getElementById('search-toggle-btn');
     const open = bar.classList.toggle('open');
     btn.classList.toggle('active', open);
+    updateMenuState();
     if (open) { setTimeout(() => document.getElementById('search-input').focus(), 80); }
     else { clearSearch(); renderPage(); }
   }
